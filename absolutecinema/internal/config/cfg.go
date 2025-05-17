@@ -3,14 +3,16 @@ package config
 import (
 	"absolutecinema/internal/database"
 	"fmt"
+	"log/slog"
 	"strconv"
 	"strings"
 )
 
 type AppConfig struct {
-	Mode Environment
-	Log  LogConfig
-	DB   database.Config
+	Mode   Environment
+	Log    LogConfig
+	Server ServerConfig
+	DB     database.Config
 }
 
 type Environment string
@@ -21,8 +23,13 @@ const (
 )
 
 type LogConfig struct {
-	Level    string
+	Level    slog.Level
 	FilePath string
+}
+
+type ServerConfig struct {
+	Host string
+	Port int
 }
 
 func New() (*AppConfig, error) {
@@ -31,7 +38,12 @@ func New() (*AppConfig, error) {
 		return nil, err
 	}
 
-	port, err := strconv.Atoi(GetEnv("AC_DATABASE_PORT", "5432"))
+	dbport, err := strconv.Atoi(GetEnv("AC_DATABASE_PORT", "5432"))
+	if err != nil {
+		return nil, err
+	}
+
+	serverport, err := strconv.Atoi(GetEnv("AC_SERVER_PORT", "8080"))
 	if err != nil {
 		return nil, err
 	}
@@ -42,9 +54,14 @@ func New() (*AppConfig, error) {
 		return nil, err
 	}
 
+	level, err := ParseLogLevel(GetEnv("AC_LOG_LEVEL", "info"))
+	if err != nil {
+		return nil, err
+	}
+
 	cfg := &AppConfig{
 		Log: LogConfig{
-			Level:    GetEnv("AC_LOG_LEVEL", "info"),
+			Level:    level,
 			FilePath: GetEnv("AC_LOG_FILE_PATH", "."),
 		},
 		Mode: mode,
@@ -53,7 +70,11 @@ func New() (*AppConfig, error) {
 			User:     GetEnv("AC_DATABASE_USER", ""),
 			Password: GetEnv("AC_DATABASE_PASSWORD", ""),
 			Host:     GetEnv("AC_DATABASE_HOST", "localhost"),
-			Port:     port,
+			Port:     dbport,
+		},
+		Server: ServerConfig{
+			Host: GetEnv("AC_SERVER_HOST", ""),
+			Port: serverport,
 		},
 	}
 
@@ -77,4 +98,13 @@ func (e Environment) IsProd() bool {
 
 func (e Environment) IsDev() bool {
 	return e == ModeDev
+}
+
+func ParseLogLevel(s string) (slog.Level, error) {
+	var level slog.Level
+	if err := level.UnmarshalText([]byte(s)); err != nil {
+		return level, err
+	}
+
+	return level, nil
 }
