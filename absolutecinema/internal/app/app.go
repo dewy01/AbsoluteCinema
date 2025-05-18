@@ -3,6 +3,7 @@ package app
 import (
 	"absolutecinema/internal/config"
 	"absolutecinema/internal/database"
+	"absolutecinema/internal/database/repository"
 	"absolutecinema/pkg/log"
 	"context"
 	"errors"
@@ -19,7 +20,8 @@ type App struct {
 	db     *database.Database
 	logger *slog.Logger
 
-	server *http.Server
+	repositories *repository.Repositories
+	server       *http.Server
 }
 
 func New(cfg *config.AppConfig) (*App, error) {
@@ -38,6 +40,8 @@ func New(cfg *config.AppConfig) (*App, error) {
 		return nil, fmt.Errorf("setup db: %w", err)
 	}
 
+	repositories := repository.NewRepositories(db.Gorm())
+
 	const defaultTimeout = 10 * time.Second
 	httpServer := &http.Server{
 		Addr: fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port),
@@ -50,10 +54,11 @@ func New(cfg *config.AppConfig) (*App, error) {
 	}
 
 	return &App{
-		cfg:    cfg,
-		db:     db,
-		logger: logger,
-		server: httpServer,
+		cfg:          cfg,
+		db:           db,
+		logger:       logger,
+		repositories: repositories,
+		server:       httpServer,
 	}, nil
 }
 

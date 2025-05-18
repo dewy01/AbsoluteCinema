@@ -3,7 +3,13 @@ package database
 import (
 	"absolutecinema/internal/database/models"
 	"fmt"
+
+	"gorm.io/gorm"
 )
+
+func (db *Database) Gorm() *gorm.DB {
+	return db.DB
+}
 
 func (db *Database) Setup() error {
 	db.initUUID()
