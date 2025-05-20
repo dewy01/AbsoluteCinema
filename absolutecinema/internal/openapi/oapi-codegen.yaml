@@ -1,0 +1,6 @@
+package: handlers
+
+generate:
+  models: true
+  client: true
+  std-http-server: true

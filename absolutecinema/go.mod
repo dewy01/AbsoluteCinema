@@ -7,9 +7,13 @@ require (
 	github.com/jackc/pgx/v5 v5.7.4 // indirect
 )
 
+require github.com/magefile/mage v1.15.0
+
 require (
+	github.com/apapsch/go-jsonmerge/v2 v2.0.0 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
+	github.com/oapi-codegen/runtime v1.1.1 // indirect
 )
 
 require (
