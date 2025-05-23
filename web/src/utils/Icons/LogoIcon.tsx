@@ -1,5 +1,9 @@
 const LogoIcon = (props: any) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width={300} height={300} {...props}>
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 300 300"
+    className="w-[50px] h-[50px]"
+    {...props}>
     <defs>
       <radialGradient id="a" cx="50%" cy="30%" r="60%">
         <stop offset="0%" stopColor="#fc0" />
