@@ -1,6 +1,5 @@
-package: handlers
+package: openapi
 
 generate:
   models: true
-  client: true
   std-http-server: true

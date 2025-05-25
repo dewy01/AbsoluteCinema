@@ -13,7 +13,7 @@ import (
 
 var (
 	OpenAPIPath    = "../internal/openapi"
-	HandlersOutput = "../internal/handlers"
+	HandlersOutput = "../internal/openapi/gen"
 )
 
 func Generate() error {
@@ -43,12 +43,20 @@ func Generate() error {
 	for _, spec := range specs {
 		base := filepath.Base(spec)
 		name := base[:len(base)-len(filepath.Ext(base))]
-		outFile := filepath.Join(HandlersOutput, name+".gen.go")
+		packageName := name + "gen"
+		outDir := filepath.Join(HandlersOutput, packageName)
 
-		fmt.Printf("Generating code for %s -> %s\n", spec, outFile)
+		if err := os.MkdirAll(outDir, os.ModePerm); err != nil {
+			return fmt.Errorf("failed to create output dir %s: %w", outDir, err)
+		}
+
+		outFile := filepath.Join(outDir, name+".gen.go")
+
+		fmt.Printf("Generating code for %s -> %s (package: %s)\n", spec, outFile, packageName)
 
 		cmd := exec.Command("oapi-codegen",
 			"-config", filepath.Join(OpenAPIPath, "oapi-codegen.yaml"),
+			"-package", packageName,
 			"-o", outFile,
 			spec,
 		)

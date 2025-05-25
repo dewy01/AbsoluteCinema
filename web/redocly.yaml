@@ -1,0 +1,5 @@
+apis:
+  user:
+    root: ../absolutecinema/internal/openapi/schema/user.yaml
+    x-openapi-ts:
+      output: ./src/types/openapi/user.ts

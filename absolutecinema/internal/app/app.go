@@ -4,6 +4,9 @@ import (
 	"absolutecinema/internal/config"
 	"absolutecinema/internal/database"
 	"absolutecinema/internal/database/repository"
+	"absolutecinema/internal/handlers"
+	"absolutecinema/internal/openapi/gen/usergen"
+	"absolutecinema/internal/service"
 	"absolutecinema/pkg/log"
 	"context"
 	"errors"
@@ -40,13 +43,18 @@ func New(cfg *config.AppConfig) (*App, error) {
 		return nil, fmt.Errorf("setup db: %w", err)
 	}
 
+	router := http.NewServeMux()
 	repositories := repository.NewRepositories(db.Gorm())
+	services := service.NewServices(repositories)
+	handlers := handlers.NewHandlers(services)
+
+	openapiHandler := usergen.Handler(handlers.User)
+	router.Handle("/users/", openapiHandler)
 
 	const defaultTimeout = 10 * time.Second
 	httpServer := &http.Server{
-		Addr: fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port),
-		// TODO
-		Handler:           http.NewServeMux(),
+		Addr:              fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port),
+		Handler:           router,
 		ReadTimeout:       defaultTimeout,
 		ReadHeaderTimeout: defaultTimeout,
 		WriteTimeout:      defaultTimeout,
