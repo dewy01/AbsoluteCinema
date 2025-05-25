@@ -1,6 +1,7 @@
 package app
 
 import (
+	"absolutecinema/internal/auth"
 	"absolutecinema/internal/config"
 	"absolutecinema/internal/database"
 	"absolutecinema/internal/database/repository"
@@ -43,9 +44,15 @@ func New(cfg *config.AppConfig) (*App, error) {
 		return nil, fmt.Errorf("setup db: %w", err)
 	}
 
+	sessionStore := auth.NewStoreMemory()
+	sessionService, err := auth.NewService(sessionStore)
+	if err != nil {
+		return nil, err
+	}
+
 	router := http.NewServeMux()
 	repositories := repository.NewRepositories(db.Gorm())
-	services := service.NewServices(repositories)
+	services := service.NewServices(repositories, sessionService)
 	handlers := handlers.NewHandlers(services)
 
 	openapiHandler := usergen.Handler(handlers.User)

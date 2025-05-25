@@ -13,6 +13,13 @@ type CreateUserInput struct {
 	ConfirmPassword string
 }
 
+type UpdateUserInput struct {
+	Name            string
+	Email           string
+	Password        string
+	ConfirmPassword string
+}
+
 type LoginInput struct {
 	Email    string
 	Password string

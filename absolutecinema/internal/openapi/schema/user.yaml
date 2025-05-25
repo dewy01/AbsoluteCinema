@@ -2,20 +2,8 @@ openapi: 3.0.0
 info:
   title: User API
   version: 1.0.0
-paths:
-  /users/list:
-    get:
-      summary: List users
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/User"
 
+paths:
   /users/register:
     post:
       summary: Register a new user
@@ -45,14 +33,81 @@ paths:
             schema:
               $ref: "#/components/schemas/LoginUserInput"
       responses:
+        "204":
+          description: Login successful, session cookie set
+        "401":
+          description: Unauthorized
+
+  /users/logout:
+    post:
+      summary: Log out current user
+      responses:
+        "204":
+          description: Logged out successfully
+        "401":
+          description: Unauthorized
+
+  /users/{id}:
+    get:
+      summary: Get a user by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
         "200":
-          description: Authenticated successfully
+          description: User found
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/LoginResponse"
-        "401":
-          description: Unauthorized
+                $ref: "#/components/schemas/UserOutput"
+        "404":
+          description: User not found
+
+    put:
+      summary: Update a user by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateUserInput"
+      responses:
+        "200":
+          description: User updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserOutput"
+        "400":
+          description: Bad request
+        "404":
+          description: User not found
+
+    delete:
+      summary: Delete a user by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: User deleted successfully
+        "404":
+          description: User not found
 
 components:
   schemas:
@@ -78,6 +133,20 @@ components:
         - email
         - password
         - confirmPassword
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+          format: password
+        confirmPassword:
+          type: string
+          format: password
+
+    UpdateUserInput:
+      type: object
       properties:
         name:
           type: string

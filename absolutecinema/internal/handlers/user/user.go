@@ -1,11 +1,14 @@
 package handler
 
 import (
-	"encoding/json"
-	"net/http"
-
+	"absolutecinema/internal/auth"
 	"absolutecinema/internal/openapi/gen/usergen"
 	user_service "absolutecinema/internal/service/user"
+	"encoding/json"
+	"net/http"
+	"time"
+
+	"github.com/google/uuid"
 )
 
 type UserHandler struct {
@@ -55,26 +58,99 @@ func (h *UserHandler) PostUsersLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err := h.Service.Login(user_service.LoginInput{
+	_, session, err := h.Service.Login(r.Context(), user_service.LoginInput{
 		Email:    input.Email,
 		Password: input.Password,
 	})
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusUnauthorized)
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
-	token := "dummy-token"
+	cookie := session.ToCookie(time.Now().Add(24 * time.Hour))
+	http.SetCookie(w, cookie)
 
-	resp := usergen.LoginResponse{
-		Token: &token,
+	w.WriteHeader(http.StatusNoContent)
+}
+
+// POST /users/logout
+func (h *UserHandler) PostUsersLogout(w http.ResponseWriter, r *http.Request) {
+	cookie, err := r.Cookie(auth.CookieName)
+	if err != nil {
+		http.Error(w, "No active session", http.StatusUnauthorized)
+		return
+	}
+
+	sessionID, err := uuid.Parse(cookie.Value)
+	if err != nil {
+		http.Error(w, "Invalid session", http.StatusBadRequest)
+		return
+	}
+
+	if err := h.Service.Logout(r.Context(), sessionID); err != nil {
+		http.Error(w, "Failed to logout", http.StatusInternalServerError)
+		return
+	}
+
+	http.SetCookie(w, auth.NewInvalidCookie())
+	w.WriteHeader(http.StatusNoContent)
+}
+
+// GET /users/{id}
+func (h *UserHandler) GetUsersId(w http.ResponseWriter, r *http.Request, id uuid.UUID) {
+	userOut, err := h.Service.GetByID(id)
+	if err != nil {
+		http.Error(w, "User not found", http.StatusNotFound)
+		return
+	}
+
+	resp := usergen.UserOutput{
+		Id:    &userOut.ID,
+		Name:  &userOut.Name,
+		Email: &userOut.Email,
+		Role:  (*string)(&userOut.Role),
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(resp)
 }
 
-// GET /users
-func (h *UserHandler) GetUsersList(w http.ResponseWriter, r *http.Request) {
-	http.Error(w, "not implemented", http.StatusNotImplemented)
+// PUT /users/{id}
+func (h *UserHandler) PutUsersId(w http.ResponseWriter, r *http.Request, id uuid.UUID) {
+	var input usergen.UpdateUserInput
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		http.Error(w, "Invalid input", http.StatusBadRequest)
+		return
+	}
+
+	userOut, err := h.Service.Update(id, user_service.UpdateUserInput{
+		Name:            *input.Name,
+		Email:           *input.Email,
+		Password:        *input.Password,
+		ConfirmPassword: *input.ConfirmPassword,
+	})
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	resp := usergen.UserOutput{
+		Id:    &userOut.ID,
+		Name:  &userOut.Name,
+		Email: &userOut.Email,
+		Role:  (*string)(&userOut.Role),
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(resp)
+}
+
+// DELETE /users/{id}
+func (h *UserHandler) DeleteUsersId(w http.ResponseWriter, r *http.Request, id uuid.UUID) {
+	if err := h.Service.Delete(id); err != nil {
+		http.Error(w, "Failed to delete user", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }

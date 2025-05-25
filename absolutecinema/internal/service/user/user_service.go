@@ -3,6 +3,7 @@ package user_service
 import (
 	"absolutecinema/internal/auth"
 	"absolutecinema/internal/database/repository/user"
+	"context"
 	"errors"
 
 	"github.com/google/uuid"
@@ -12,15 +13,20 @@ import (
 
 type Service interface {
 	Register(input CreateUserInput) (*UserOutput, error)
-	Login(input LoginInput) (*UserOutput, error)
+	Login(ctx context.Context, input LoginInput) (*UserOutput, *auth.Session, error)
+	Logout(ctx context.Context, sessionID uuid.UUID) error
+	Update(id uuid.UUID, input UpdateUserInput) (*UserOutput, error)
+	GetByID(id uuid.UUID) (*UserOutput, error)
+	Delete(id uuid.UUID) error
 }
 
 type service struct {
-	repo user.Repository
+	repo    user.Repository
+	session *auth.Service
 }
 
-func NewUserService(repo user.Repository) *service {
-	return &service{repo: repo}
+func NewUserService(repo user.Repository, sessionService *auth.Service) *service {
+	return &service{repo: repo, session: sessionService}
 }
 
 func (s *service) Register(input CreateUserInput) (*UserOutput, error) {
@@ -65,15 +71,64 @@ func (s *service) Register(input CreateUserInput) (*UserOutput, error) {
 	}, nil
 }
 
-func (s *service) Login(input LoginInput) (*UserOutput, error) {
+func (s *service) Login(ctx context.Context, input LoginInput) (*UserOutput, *auth.Session, error) {
 	user, err := s.repo.GetByEmail(input.Email)
-	if err != nil {
-		return nil, errors.New("invalid email or password")
+	if err != nil || bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(input.Password)) != nil {
+		return nil, nil, errors.New("invalid email or password")
 	}
 
-	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(input.Password))
+	session, err := s.session.New(ctx, auth.SessionData{
+		ID:    user.ID,
+		Name:  user.Name,
+		Email: user.Email,
+	})
 	if err != nil {
-		return nil, errors.New("invalid email or password")
+		return nil, nil, err
+	}
+
+	return &UserOutput{
+		ID:    user.ID,
+		Name:  user.Name,
+		Email: user.Email,
+		Role:  user.Role,
+	}, &session, nil
+}
+
+func (s *service) Logout(ctx context.Context, sessionID uuid.UUID) error {
+	session, err := s.session.Get(ctx, sessionID)
+	if err != nil {
+		return err
+	}
+
+	return s.session.Delete(ctx, session)
+}
+
+func (s *service) Update(id uuid.UUID, input UpdateUserInput) (*UserOutput, error) {
+	user, err := s.repo.GetByID(id)
+	if err != nil {
+		return nil, err
+	}
+
+	if input.Password != "" || input.ConfirmPassword != "" {
+		if input.Password != input.ConfirmPassword {
+			return nil, errors.New("passwords do not match")
+		}
+		hashedPw, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
+		if err != nil {
+			return nil, err
+		}
+		user.Password = string(hashedPw)
+	}
+
+	if input.Name != "" {
+		user.Name = input.Name
+	}
+	if input.Email != "" {
+		user.Email = input.Email
+	}
+
+	if err := s.repo.Update(user); err != nil {
+		return nil, err
 	}
 
 	return &UserOutput{
@@ -82,4 +137,22 @@ func (s *service) Login(input LoginInput) (*UserOutput, error) {
 		Email: user.Email,
 		Role:  user.Role,
 	}, nil
+}
+
+func (s *service) GetByID(id uuid.UUID) (*UserOutput, error) {
+	user, err := s.repo.GetByID(id)
+	if err != nil {
+		return nil, err
+	}
+
+	return &UserOutput{
+		ID:    user.ID,
+		Name:  user.Name,
+		Email: user.Email,
+		Role:  user.Role,
+	}, nil
+}
+
+func (s *service) Delete(id uuid.UUID) error {
+	return s.repo.Delete(id)
 }
