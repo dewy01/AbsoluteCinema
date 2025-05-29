@@ -1,20 +1,20 @@
-import { Box, TextField, Button, Link, Paper, Typography } from '@mui/material';
+import { Box, TextField, Button, Paper, Typography, Link } from '@mui/material';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { userLoginSchema, type UserLogin } from '@/schemas/UserLogin';
+import { userRegisterSchema, type UserRegister } from '@/schemas/UserRegister';
 
-export const LoginView = () => {
+export const RegisterView = () => {
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting }
-  } = useForm<UserLogin>({
-    resolver: zodResolver(userLoginSchema),
+  } = useForm<UserRegister>({
+    resolver: zodResolver(userRegisterSchema),
     mode: 'onChange'
   });
 
-  const onSubmit = (data: UserLogin) => {
-    console.log('Logowanie:', data);
+  const onSubmit = (data: UserRegister) => {
+    console.log('Dane z formularza rejestracji:', data);
   };
 
   return (
@@ -36,7 +36,7 @@ export const LoginView = () => {
           minWidth: '300px'
         }}>
         <Typography variant="h5" component="h1" align="center" sx={{ mb: 2, fontWeight: 'bold' }}>
-          Zaloguj się
+          Zarejestruj się
         </Typography>
 
         <Box
@@ -67,17 +67,26 @@ export const LoginView = () => {
             helperText={errors.password?.message}
           />
 
+          <TextField
+            label="Powtórz hasło"
+            type="password"
+            required
+            {...register('confirmPassword')}
+            error={!!errors.confirmPassword}
+            helperText={errors.confirmPassword?.message}
+          />
+
           <Button
             type="submit"
             variant="contained"
             color="primary"
             sx={{ mt: 2, width: '25ch' }}
             disabled={isSubmitting}>
-            Zaloguj się
+            Zarejestruj się
           </Button>
 
-          <Link href="#" underline="hover" sx={{ mt: 1, fontSize: '0.875rem' }}>
-            Nie pamiętasz hasła?
+          <Link href="/login" underline="hover" sx={{ mt: 1, fontSize: '0.875rem' }}>
+            Masz już konto? Zaloguj się
           </Link>
         </Box>
       </Paper>

@@ -13,12 +13,20 @@ const Login = lazy(() =>
   }))
 );
 
+const Register = lazy(() =>
+  import('@/views/RegisterView').then((module) => ({
+    default: module.RegisterView
+  }))
+);
+
 export const Router = () => {
   return (
     <Suspense fallback={<Progress />}>
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<Login />} />
+          <Route path="login" element={<Login />} />
+          <Route path="register" element={<Register />} />
         </Route>
       </Routes>
     </Suspense>
