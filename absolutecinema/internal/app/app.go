@@ -50,18 +50,24 @@ func New(cfg *config.AppConfig) (*App, error) {
 		return nil, err
 	}
 
-	router := http.NewServeMux()
+	mux := http.NewServeMux()
+
 	repositories := repository.NewRepositories(db.Gorm())
 	services := service.NewServices(repositories, sessionService)
 	handlers := handlers.NewHandlers(services)
 
-	openapiHandler := usergen.Handler(handlers.User)
-	router.Handle("/users/", openapiHandler)
+	openapiHandler := usergen.HandlerWithOptions(handlers.User, usergen.StdHTTPServerOptions{
+		Middlewares: []usergen.MiddlewareFunc{
+			//middleware.AuthenticationMiddleware(sessionService),
+		},
+	})
+
+	mux.Handle("/users/", openapiHandler)
 
 	const defaultTimeout = 10 * time.Second
 	httpServer := &http.Server{
 		Addr:              fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port),
-		Handler:           router,
+		Handler:           mux,
 		ReadTimeout:       defaultTimeout,
 		ReadHeaderTimeout: defaultTimeout,
 		WriteTimeout:      defaultTimeout,

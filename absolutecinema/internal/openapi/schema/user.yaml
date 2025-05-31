@@ -16,10 +16,6 @@ paths:
       responses:
         "201":
           description: User created
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/UserOutput"
         "400":
           description: Bad request
 
@@ -46,6 +42,19 @@ paths:
           description: Logged out successfully
         "401":
           description: Unauthorized
+
+  /users/me:
+    get:
+      summary: Get current user from session
+      responses:
+        "200":
+          description: Current session user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserOutput"
+        "401":
+          description: Unauthorized - session not found
 
   /users/{id}:
     get:

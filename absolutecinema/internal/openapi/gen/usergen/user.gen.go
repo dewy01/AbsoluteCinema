@@ -61,6 +61,9 @@ type ServerInterface interface {
 	// Log out current user
 	// (POST /users/logout)
 	PostUsersLogout(w http.ResponseWriter, r *http.Request)
+	// Get current user from session
+	// (GET /users/me)
+	GetUsersMe(w http.ResponseWriter, r *http.Request)
 	// Register a new user
 	// (POST /users/register)
 	PostUsersRegister(w http.ResponseWriter, r *http.Request)
@@ -103,6 +106,20 @@ func (siw *ServerInterfaceWrapper) PostUsersLogout(w http.ResponseWriter, r *htt
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.PostUsersLogout(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetUsersMe operation middleware
+func (siw *ServerInterfaceWrapper) GetUsersMe(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetUsersMe(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -323,6 +340,7 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 
 	m.HandleFunc("POST "+options.BaseURL+"/users/login", wrapper.PostUsersLogin)
 	m.HandleFunc("POST "+options.BaseURL+"/users/logout", wrapper.PostUsersLogout)
+	m.HandleFunc("GET "+options.BaseURL+"/users/me", wrapper.GetUsersMe)
 	m.HandleFunc("POST "+options.BaseURL+"/users/register", wrapper.PostUsersRegister)
 	m.HandleFunc("DELETE "+options.BaseURL+"/users/{id}", wrapper.DeleteUsersId)
 	m.HandleFunc("GET "+options.BaseURL+"/users/{id}", wrapper.GetUsersId)

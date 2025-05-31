@@ -15,6 +15,7 @@ type Service interface {
 	Register(input CreateUserInput) (*UserOutput, error)
 	Login(ctx context.Context, input LoginInput) (*UserOutput, *auth.Session, error)
 	Logout(ctx context.Context, sessionID uuid.UUID) error
+	GetMe(ctx context.Context, sessionID uuid.UUID) (auth.SessionData, error)
 	Update(id uuid.UUID, input UpdateUserInput) (*UserOutput, error)
 	GetByID(id uuid.UUID) (*UserOutput, error)
 	Delete(id uuid.UUID) error
@@ -101,6 +102,15 @@ func (s *service) Logout(ctx context.Context, sessionID uuid.UUID) error {
 	}
 
 	return s.session.Delete(ctx, session)
+}
+
+func (s *service) GetMe(ctx context.Context, sessionID uuid.UUID) (auth.SessionData, error) {
+	session, err := s.session.Get(ctx, sessionID)
+	if err != nil {
+		return auth.SessionData{}, err
+	}
+
+	return session.Data, nil
 }
 
 func (s *service) Update(id uuid.UUID, input UpdateUserInput) (*UserOutput, error) {

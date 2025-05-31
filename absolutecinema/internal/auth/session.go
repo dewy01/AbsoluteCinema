@@ -25,6 +25,7 @@ type SessionData struct {
 	ID    uuid.UUID
 	Name  string
 	Email string
+	Role  Role
 }
 
 type Session struct {

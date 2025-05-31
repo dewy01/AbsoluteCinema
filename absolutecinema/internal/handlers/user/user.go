@@ -27,7 +27,7 @@ func (h *UserHandler) PostUsersRegister(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	userOut, err := h.Service.Register(user_service.CreateUserInput{
+	_, err := h.Service.Register(user_service.CreateUserInput{
 		Name:            input.Name,
 		Email:           input.Email,
 		Password:        input.Password,
@@ -38,16 +38,7 @@ func (h *UserHandler) PostUsersRegister(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	resp := usergen.UserOutput{
-		Id:    &userOut.ID,
-		Name:  &userOut.Name,
-		Email: &userOut.Email,
-		Role:  (*string)(&userOut.Role),
-	}
-
-	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(resp)
 }
 
 // POST /users/login
@@ -94,6 +85,30 @@ func (h *UserHandler) PostUsersLogout(w http.ResponseWriter, r *http.Request) {
 
 	http.SetCookie(w, auth.NewInvalidCookie())
 	w.WriteHeader(http.StatusNoContent)
+}
+
+// GET /users/me
+func (h *UserHandler) GetUsersMe(w http.ResponseWriter, r *http.Request) {
+	cookie, err := r.Cookie(auth.CookieName)
+	if err != nil {
+		http.Error(w, "No active session", http.StatusUnauthorized)
+		return
+	}
+
+	sessionID, err := uuid.Parse(cookie.Value)
+	if err != nil {
+		http.Error(w, "Invalid session", http.StatusBadRequest)
+		return
+	}
+
+	user, err := h.Service.GetMe(r.Context(), sessionID)
+	if err != nil {
+		http.Error(w, "No user data found", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(user)
 }
 
 // GET /users/{id}
