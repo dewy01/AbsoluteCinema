@@ -6,6 +6,7 @@ import (
 	"absolutecinema/internal/database"
 	"absolutecinema/internal/database/repository"
 	"absolutecinema/internal/handlers"
+	"absolutecinema/internal/openapi/gen/actorgen"
 	"absolutecinema/internal/openapi/gen/usergen"
 	"absolutecinema/internal/service"
 	"absolutecinema/pkg/log"
@@ -56,13 +57,15 @@ func New(cfg *config.AppConfig) (*App, error) {
 	services := service.NewServices(repositories, sessionService)
 	handlers := handlers.NewHandlers(services)
 
-	openapiHandler := usergen.HandlerWithOptions(handlers.User, usergen.StdHTTPServerOptions{
-		Middlewares: []usergen.MiddlewareFunc{
-			//middleware.AuthenticationMiddleware(sessionService),
-		},
-	})
+	// TODO MIDDLEWARE
+	// openapiHandler := usergen.HandlerWithOptions(handlers.User, usergen.StdHTTPServerOptions{
+	// 	Middlewares: []usergen.MiddlewareFunc{
+	// 		middleware.AuthenticationMiddleware(sessionService),
+	// 	},
+	// })
 
-	mux.Handle("/users/", openapiHandler)
+	mux.Handle("/users/", usergen.Handler(handlers.User))
+	mux.Handle("/actors/", actorgen.Handler(handlers.Actor))
 
 	const defaultTimeout = 10 * time.Second
 	httpServer := &http.Server{

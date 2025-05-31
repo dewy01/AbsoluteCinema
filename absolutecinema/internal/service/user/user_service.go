@@ -82,6 +82,7 @@ func (s *service) Login(ctx context.Context, input LoginInput) (*UserOutput, *au
 		ID:    user.ID,
 		Name:  user.Name,
 		Email: user.Email,
+		Role:  user.Role,
 	})
 	if err != nil {
 		return nil, nil, err
