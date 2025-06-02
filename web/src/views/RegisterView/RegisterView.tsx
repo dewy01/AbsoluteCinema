@@ -51,6 +51,14 @@ export const RegisterView = () => {
           noValidate
           autoComplete="off">
           <TextField
+            label="Imię"
+            required
+            {...register('firstName')}
+            error={!!errors.firstName}
+            helperText={errors.firstName?.message}
+          />
+
+          <TextField
             label="Adres email"
             required
             {...register('email')}
