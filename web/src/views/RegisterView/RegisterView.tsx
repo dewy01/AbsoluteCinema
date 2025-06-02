@@ -2,19 +2,37 @@ import { Box, TextField, Button, Paper, Typography, Link } from '@mui/material';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { userRegisterSchema, type UserRegister } from '@/schemas/UserRegister';
+import { callUserRegister } from '@/apis/User';
 
 export const RegisterView = () => {
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting }
+    formState: { errors, isSubmitting },
+    reset
   } = useForm<UserRegister>({
     resolver: zodResolver(userRegisterSchema),
-    mode: 'onChange'
+    mode: 'onChange',
+    defaultValues: {
+      name: '',
+      email: '',
+      password: '',
+      confirmPassword: ''
+    }
   });
 
+  const { mutateAsync } = callUserRegister();
+
   const onSubmit = (data: UserRegister) => {
-    console.log('Dane z formularza rejestracji:', data);
+    mutateAsync(data, {
+      onSuccess: () => {
+        reset();
+      },
+      onError: (error) => {
+        console.error('Register failed:', error);
+        reset();
+      }
+    });
   };
 
   return (
@@ -52,15 +70,13 @@ export const RegisterView = () => {
           autoComplete="off">
           <TextField
             label="Imię"
-            required
-            {...register('firstName')}
-            error={!!errors.firstName}
-            helperText={errors.firstName?.message}
+            {...register('name')}
+            error={!!errors.name}
+            helperText={errors.name?.message}
           />
 
           <TextField
             label="Adres email"
-            required
             {...register('email')}
             error={!!errors.email}
             helperText={errors.email?.message}
@@ -69,7 +85,6 @@ export const RegisterView = () => {
           <TextField
             label="Hasło"
             type="password"
-            required
             {...register('password')}
             error={!!errors.password}
             helperText={errors.password?.message}
@@ -78,7 +93,6 @@ export const RegisterView = () => {
           <TextField
             label="Powtórz hasło"
             type="password"
-            required
             {...register('confirmPassword')}
             error={!!errors.confirmPassword}
             helperText={errors.confirmPassword?.message}

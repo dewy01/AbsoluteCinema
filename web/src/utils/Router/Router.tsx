@@ -7,6 +7,13 @@ const Layout = lazy(() =>
     default: module.LayoutView
   }))
 );
+
+const Home = lazy(() =>
+  import('@/views/HomeView').then((module) => ({
+    default: module.HomeView
+  }))
+);
+
 const Login = lazy(() =>
   import('@/views/LoginView').then((module) => ({
     default: module.LoginView
@@ -24,7 +31,7 @@ export const Router = () => {
     <Suspense fallback={<Progress />}>
       <Routes>
         <Route path="/" element={<Layout />}>
-          <Route index element={<Login />} />
+          <Route index element={<Home />} />
           <Route path="login" element={<Login />} />
           <Route path="register" element={<Register />} />
         </Route>

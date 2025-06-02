@@ -2,19 +2,35 @@ import { Box, TextField, Button, Link, Paper, Typography } from '@mui/material';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { userLoginSchema, type UserLogin } from '@/schemas/UserLogin';
+import { callUserLogin } from '@/apis/User';
 
 export const LoginView = () => {
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting }
+    formState: { errors, isSubmitting },
+    reset
   } = useForm<UserLogin>({
     resolver: zodResolver(userLoginSchema),
-    mode: 'onChange'
+    mode: 'onChange',
+    defaultValues: {
+      email: '',
+      password: ''
+    }
   });
 
+  const { mutateAsync } = callUserLogin();
+
   const onSubmit = (data: UserLogin) => {
-    console.log('Logowanie:', data);
+    mutateAsync(data, {
+      onSuccess: () => {
+        reset();
+      },
+      onError: (error) => {
+        console.error('Login failed:', error);
+        reset();
+      }
+    });
   };
 
   return (
@@ -52,7 +68,6 @@ export const LoginView = () => {
           autoComplete="off">
           <TextField
             label="Adres email"
-            required
             {...register('email')}
             error={!!errors.email}
             helperText={errors.email?.message}
@@ -61,7 +76,6 @@ export const LoginView = () => {
           <TextField
             label="Hasło"
             type="password"
-            required
             {...register('password')}
             error={!!errors.password}
             helperText={errors.password?.message}

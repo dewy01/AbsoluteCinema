@@ -1,23 +1,35 @@
 import * as React from 'react';
-import AppBar from '@mui/material/AppBar';
-import Box from '@mui/material/Box';
-import Toolbar from '@mui/material/Toolbar';
-import IconButton from '@mui/material/IconButton';
-import Typography from '@mui/material/Typography';
-import Menu from '@mui/material/Menu';
+import {
+  AppBar,
+  Box,
+  Toolbar,
+  IconButton,
+  Typography,
+  Container,
+  Avatar,
+  Button,
+  Tooltip,
+  Menu,
+  MenuItem,
+  Modal
+} from '@mui/material';
+import { Grid } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
-import Container from '@mui/material/Container';
-import Avatar from '@mui/material/Avatar';
-import Button from '@mui/material/Button';
-import Tooltip from '@mui/material/Tooltip';
-import MenuItem from '@mui/material/MenuItem';
 import AdbIcon from '@mui/icons-material/Adb';
 import LogoIcon from '@/utils/Icons/LogoIcon';
+import { useAuth } from '@/contexts';
+import { useNavigate } from 'react-router-dom';
+import { useCinema } from '@/contexts/CinemaContext';
 
-const pages = ['Products', 'Pricing', 'Blog'];
-const settings = ['Profile', 'Account', 'Dashboard', 'Logout'];
+const cinemaList = ['Cinema City', 'Multikino', 'Helios', 'Test']; // TODO
 
 function Navbar() {
+  const { isAuthenticated, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const { selectedCinema, isCinemaModalOpen, openCinemaModal, closeCinemaModal, selectCinema } =
+    useCinema();
+
   const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(null);
   const [anchorElUser, setAnchorElUser] = React.useState<null | HTMLElement>(null);
 
@@ -26,14 +38,6 @@ function Navbar() {
   };
   const handleOpenUserMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorElUser(event.currentTarget);
-  };
-
-  const handleCloseNavMenu = () => {
-    setAnchorElNav(null);
-  };
-
-  const handleCloseUserMenu = () => {
-    setAnchorElUser(null);
   };
 
   return (
@@ -45,7 +49,7 @@ function Navbar() {
             variant="h6"
             noWrap
             component="a"
-            href="#app-bar-with-responsive-menu"
+            href="/"
             sx={{
               mr: 2,
               display: { xs: 'none', md: 'flex' },
@@ -58,44 +62,20 @@ function Navbar() {
             ABSOLUTE CINEMA
           </Typography>
 
+          {/* Hamburger (mobile) */}
           <Box sx={{ flexGrow: 1, display: { xs: 'flex', md: 'none' } }}>
-            <IconButton
-              size="large"
-              aria-label="account of current user"
-              aria-controls="menu-appbar"
-              aria-haspopup="true"
-              onClick={handleOpenNavMenu}
-              color="inherit">
+            <IconButton size="large" aria-label="menu" onClick={openCinemaModal} color="inherit">
               <MenuIcon />
             </IconButton>
-            <Menu
-              id="menu-appbar"
-              anchorEl={anchorElNav}
-              anchorOrigin={{
-                vertical: 'bottom',
-                horizontal: 'left'
-              }}
-              keepMounted
-              transformOrigin={{
-                vertical: 'top',
-                horizontal: 'left'
-              }}
-              open={Boolean(anchorElNav)}
-              onClose={handleCloseNavMenu}
-              sx={{ display: { xs: 'block', md: 'none' } }}>
-              {pages.map((page) => (
-                <MenuItem key={page} onClick={handleCloseNavMenu}>
-                  <Typography sx={{ textAlign: 'center' }}>{page}</Typography>
-                </MenuItem>
-              ))}
-            </Menu>
           </Box>
+
+          {/* Ikona i logo (mobile) */}
           <AdbIcon sx={{ display: { xs: 'flex', md: 'none' }, mr: 1 }} />
           <Typography
             variant="h5"
             noWrap
             component="a"
-            href="#app-bar-with-responsive-menu"
+            href="#"
             sx={{
               mr: 2,
               display: { xs: 'flex', md: 'none' },
@@ -108,47 +88,115 @@ function Navbar() {
             }}>
             LOGO
           </Typography>
-          <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
-            {pages.map((page) => (
-              <Button
-                key={page}
-                onClick={handleCloseNavMenu}
-                sx={{ my: 2, color: 'white', display: 'block' }}>
-                {page}
-              </Button>
-            ))}
+
+          {/* Wybrany kino (desktop) */}
+          <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' }, alignItems: 'center' }}>
+            <Button onClick={openCinemaModal} sx={{ my: 2, color: 'white', display: 'block' }}>
+              {selectedCinema ? `Kino: ${selectedCinema}` : 'Wybierz kino'}
+            </Button>
           </Box>
+
+          {/* Auth / Avatar */}
           <Box sx={{ flexGrow: 0 }}>
-            <Tooltip title="Open settings">
-              <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-                <Avatar alt="Remy Sharp" src="/static/images/avatar/2.jpg" />
-              </IconButton>
-            </Tooltip>
-            <Menu
-              sx={{ mt: '45px' }}
-              id="menu-appbar"
-              anchorEl={anchorElUser}
-              anchorOrigin={{
-                vertical: 'top',
-                horizontal: 'right'
-              }}
-              keepMounted
-              transformOrigin={{
-                vertical: 'top',
-                horizontal: 'right'
-              }}
-              open={Boolean(anchorElUser)}
-              onClose={handleCloseUserMenu}>
-              {settings.map((setting) => (
-                <MenuItem key={setting} onClick={handleCloseUserMenu}>
-                  <Typography sx={{ textAlign: 'center' }}>{setting}</Typography>
-                </MenuItem>
-              ))}
-            </Menu>
+            {isAuthenticated ? (
+              <>
+                <Tooltip title="Ustawienia">
+                  <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
+                    <Avatar alt="Użytkownik" src="/static/images/avatar/2.jpg" />
+                  </IconButton>
+                </Tooltip>
+                <Menu
+                  sx={{ mt: '45px' }}
+                  id="menu-appbar"
+                  anchorEl={anchorElUser}
+                  anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+                  keepMounted
+                  transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+                  open={Boolean(anchorElUser)}
+                  onClose={handleCloseUserMenu}>
+                  <MenuItem
+                    onClick={() => {
+                      handleCloseUserMenu();
+                      logout();
+                      navigate('/login');
+                    }}>
+                    <Typography textAlign="center">Wyloguj się</Typography>
+                  </MenuItem>
+                </Menu>
+              </>
+            ) : (
+              <>
+                <Button color="inherit" onClick={() => navigate('/login')}>
+                  Zaloguj
+                </Button>
+                <Button color="inherit" onClick={() => navigate('/register')}>
+                  Zarejestruj się
+                </Button>
+              </>
+            )}
           </Box>
         </Toolbar>
       </Container>
+
+      <Modal open={isCinemaModalOpen} onClose={closeCinemaModal}>
+        <Box
+          sx={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            maxHeight: '70vh',
+            overflowY: 'auto',
+            width: 600,
+            bgcolor: 'background.paper',
+            borderRadius: 2,
+            boxShadow: 24,
+            pt: 0,
+            pr: 4,
+            pb: 4,
+            pl: 4
+          }}>
+          <Container
+            component="div"
+            sx={{
+              position: 'sticky',
+              top: 0,
+              zIndex: 1,
+              bgcolor: 'background.paper',
+              py: 0.5,
+              my: 1,
+              mb: 1
+            }}>
+            <Typography variant="h6" sx={{ mb: 1 }}>
+              Wybierz kino
+            </Typography>
+          </Container>
+
+          <Grid container spacing={2}>
+            {cinemaList.map((cinema, index) => (
+              <Button
+                key={index}
+                variant="outlined"
+                fullWidth
+                onClick={() => selectCinema(cinema)}
+                sx={{
+                  color: 'white',
+                  borderColor: 'white',
+                  '&:hover': {
+                    backgroundColor: 'white',
+                    color: 'black',
+                    borderColor: 'white'
+                  },
+                  textTransform: 'none'
+                }}>
+                {cinema}
+              </Button>
+            ))}
+          </Grid>
+        </Box>
+      </Modal>
     </AppBar>
   );
 }
+
 export default Navbar;
