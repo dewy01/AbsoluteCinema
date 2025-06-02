@@ -1,0 +1,204 @@
+openapi: 3.0.0
+info:
+  title: User API
+  version: 1.0.0
+
+paths:
+  /users/register:
+    post:
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateUserInput"
+      responses:
+        "201":
+          description: User created
+        "400":
+          description: Bad request
+
+  /users/login:
+    post:
+      summary: Log in an existing user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginUserInput"
+      responses:
+        "204":
+          description: Login successful, session cookie set
+        "401":
+          description: Unauthorized
+
+  /users/logout:
+    post:
+      summary: Log out current user
+      responses:
+        "204":
+          description: Logged out successfully
+        "401":
+          description: Unauthorized
+
+  /users/me:
+    get:
+      summary: Get current user from session
+      responses:
+        "200":
+          description: Current session user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserOutput"
+        "401":
+          description: Unauthorized - session not found
+
+  /users/{id}:
+    get:
+      summary: Get a user by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: User found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserOutput"
+        "404":
+          description: User not found
+
+    put:
+      summary: Update a user by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateUserInput"
+      responses:
+        "200":
+          description: User updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserOutput"
+        "400":
+          description: Bad request
+        "404":
+          description: User not found
+
+    delete:
+      summary: Delete a user by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: User deleted successfully
+        "404":
+          description: User not found
+
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          x-go-type: googleuuid.UUID
+          x-go-type-import:
+            path: github.com/google/uuid
+            name: googleuuid
+        name:
+          type: string
+        email:
+          type: string
+
+    CreateUserInput:
+      type: object
+      required:
+        - name
+        - email
+        - password
+        - confirmPassword
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+          format: password
+        confirmPassword:
+          type: string
+          format: password
+
+    UpdateUserInput:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+          format: password
+        confirmPassword:
+          type: string
+          format: password
+
+    LoginUserInput:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+          format: password
+
+    UserOutput:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          x-go-type: googleuuid.UUID
+          x-go-type-import:
+            path: github.com/google/uuid
+            name: googleuuid
+        name:
+          type: string
+        email:
+          type: string
+        role:
+          type: string
+
+    LoginResponse:
+      type: object
+      properties:
+        token:
+          type: string

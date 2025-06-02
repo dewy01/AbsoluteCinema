@@ -1,0 +1,129 @@
+openapi: 3.0.0
+info:
+  title: Actor API
+  version: 1.0.0
+
+paths:
+  /actors/:
+    post:
+      summary: Create a new actor
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateActorInput"
+      responses:
+        "201":
+          description: Actor created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActorOutput"
+        "400":
+          description: Bad request
+
+    get:
+      summary: Get all actors
+      responses:
+        "200":
+          description: List of actors
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ActorOutput"
+
+  /actors/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+
+    get:
+      summary: Get an actor by ID
+      responses:
+        "200":
+          description: Actor found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActorOutput"
+        "404":
+          description: Actor not found
+
+    put:
+      summary: Update an actor by ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateActorInput"
+      responses:
+        "200":
+          description: Actor updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActorOutput"
+        "400":
+          description: Bad request
+        "404":
+          description: Actor not found
+
+    delete:
+      summary: Delete an actor by ID
+      responses:
+        "204":
+          description: Actor deleted successfully
+        "404":
+          description: Actor not found
+
+components:
+  schemas:
+    CreateActorInput:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        movieIDs:
+          type: array
+          items:
+            type: string
+            format: uuid
+
+    UpdateActorInput:
+      type: object
+      properties:
+        name:
+          type: string
+        movieIDs:
+          type: array
+          items:
+            type: string
+            format: uuid
+
+    ActorOutput:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          x-go-type: googleuuid.UUID
+          x-go-type-import:
+            path: github.com/google/uuid
+            name: googleuuid
+        name:
+          type: string
+        movieIDs:
+          type: array
+          items:
+            type: string
+            format: uuid

@@ -1,0 +1,136 @@
+openapi: 3.0.0
+info:
+  title: Cinema API
+  version: 1.0.0
+
+paths:
+  /cinemas/:
+    post:
+      summary: Create a new cinema
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCinemaInput"
+      responses:
+        "201":
+          description: Cinema created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CinemaOutput"
+        "400":
+          description: Bad request
+
+    get:
+      summary: Get all cinemas
+      responses:
+        "200":
+          description: List of cinemas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CinemaOutput"
+
+  /cinemas/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+
+    get:
+      summary: Get a cinema by ID
+      responses:
+        "200":
+          description: Cinema found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CinemaOutput"
+        "404":
+          description: Cinema not found
+
+    put:
+      summary: Update a cinema by ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateCinemaInput"
+      responses:
+        "200":
+          description: Cinema updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CinemaOutput"
+        "400":
+          description: Bad request
+        "404":
+          description: Cinema not found
+
+    delete:
+      summary: Delete a cinema by ID
+      responses:
+        "204":
+          description: Cinema deleted successfully
+        "404":
+          description: Cinema not found
+
+components:
+  schemas:
+    CreateCinemaInput:
+      type: object
+      required:
+        - name
+        - address
+      properties:
+        name:
+          type: string
+        address:
+          type: string
+        roomIDs:
+          type: array
+          items:
+            type: string
+            format: uuid
+
+    UpdateCinemaInput:
+      type: object
+      properties:
+        name:
+          type: string
+        address:
+          type: string
+        roomIDs:
+          type: array
+          items:
+            type: string
+            format: uuid
+
+    CinemaOutput:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          x-go-type: googleuuid.UUID
+          x-go-type-import:
+            path: github.com/google/uuid
+            name: googleuuid
+        name:
+          type: string
+        address:
+          type: string
+        roomIDs:
+          type: array
+          items:
+            type: string
+            format: uuid

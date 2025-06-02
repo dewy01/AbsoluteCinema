@@ -1,9 +1,14 @@
 package app
 
 import (
+	"absolutecinema/internal/auth"
 	"absolutecinema/internal/config"
 	"absolutecinema/internal/database"
 	"absolutecinema/internal/database/repository"
+	"absolutecinema/internal/handlers"
+	"absolutecinema/internal/openapi/gen/actorgen"
+	"absolutecinema/internal/openapi/gen/usergen"
+	"absolutecinema/internal/service"
 	"absolutecinema/pkg/log"
 	"context"
 	"errors"
@@ -40,13 +45,32 @@ func New(cfg *config.AppConfig) (*App, error) {
 		return nil, fmt.Errorf("setup db: %w", err)
 	}
 
+	sessionStore := auth.NewStoreMemory()
+	sessionService, err := auth.NewService(sessionStore)
+	if err != nil {
+		return nil, err
+	}
+
+	mux := http.NewServeMux()
+
 	repositories := repository.NewRepositories(db.Gorm())
+	services := service.NewServices(repositories, sessionService)
+	handlers := handlers.NewHandlers(services)
+
+	// TODO MIDDLEWARE
+	// openapiHandler := usergen.HandlerWithOptions(handlers.User, usergen.StdHTTPServerOptions{
+	// 	Middlewares: []usergen.MiddlewareFunc{
+	// 		middleware.AuthenticationMiddleware(sessionService),
+	// 	},
+	// })
+
+	mux.Handle("/users/", usergen.Handler(handlers.User))
+	mux.Handle("/actors/", actorgen.Handler(handlers.Actor))
 
 	const defaultTimeout = 10 * time.Second
 	httpServer := &http.Server{
-		Addr: fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port),
-		// TODO
-		Handler:           http.NewServeMux(),
+		Addr:              fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port),
+		Handler:           mux,
 		ReadTimeout:       defaultTimeout,
 		ReadHeaderTimeout: defaultTimeout,
 		WriteTimeout:      defaultTimeout,
