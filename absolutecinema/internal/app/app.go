@@ -70,7 +70,7 @@ func New(cfg *config.AppConfig) (*App, error) {
 	const defaultTimeout = 10 * time.Second
 	httpServer := &http.Server{
 		Addr:              fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port),
-		Handler:           mux,
+		Handler:           withCORS(mux),
 		ReadTimeout:       defaultTimeout,
 		ReadHeaderTimeout: defaultTimeout,
 		WriteTimeout:      defaultTimeout,
@@ -85,6 +85,23 @@ func New(cfg *config.AppConfig) (*App, error) {
 		server:       httpServer,
 	}, nil
 }
+
+func withCORS(next http.Handler) http.Handler {
+    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        w.Header().Set("Access-Control-Allow-Origin", "http://localhost:5173")
+        w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+        w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+        w.Header().Set("Access-Control-Allow-Credentials", "true")
+
+        if r.Method == http.MethodOptions {
+            w.WriteHeader(http.StatusNoContent)
+            return
+        }
+
+        next.ServeHTTP(w, r)
+    })
+}
+
 
 func (app *App) Start(ctx context.Context, group *errgroup.Group) error {
 	group.Go(func() error {
