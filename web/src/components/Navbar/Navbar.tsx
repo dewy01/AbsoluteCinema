@@ -20,25 +20,35 @@ import LogoIcon from '@/utils/Icons/LogoIcon';
 import { useAuth } from '@/contexts';
 import { useNavigate } from 'react-router-dom';
 import { useCinema } from '@/contexts/CinemaContext';
+import { useUserLogout } from '@/apis/User';
 
 const cinemaList = ['Cinema City', 'Multikino', 'Helios', 'Test']; // TODO
 
 function Navbar() {
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated } = useAuth();
+  const { mutateAsync } = useUserLogout();
   const navigate = useNavigate();
 
   const { selectedCinema, isCinemaModalOpen, openCinemaModal, closeCinemaModal, selectCinema } =
     useCinema();
 
-  const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(null);
+  // const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(null);
   const [anchorElUser, setAnchorElUser] = React.useState<null | HTMLElement>(null);
 
-  const handleOpenNavMenu = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorElNav(event.currentTarget);
-  };
+  // const handleOpenNavMenu = (event: React.MouseEvent<HTMLElement>) => {
+  //   setAnchorElNav(event.currentTarget);
+  // };
   const handleOpenUserMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorElUser(event.currentTarget);
   };
+
+  const handleCloseUserMenu = () => {
+    setAnchorElUser(null);
+  };
+
+  // const handleCloseNavMenu = () => {
+  //   setAnchorElNav(null);
+  // };
 
   return (
     <AppBar position="static">
@@ -117,8 +127,7 @@ function Navbar() {
                   <MenuItem
                     onClick={() => {
                       handleCloseUserMenu();
-                      logout();
-                      navigate('/login');
+                      mutateAsync();
                     }}>
                     <Typography textAlign="center">Wyloguj się</Typography>
                   </MenuItem>

@@ -7,7 +7,7 @@ export interface AccessToken {
   refreshToken: string;
 }
 
-export const axiosInstance = axios.create({ baseURL: baseUrl });
+export const axiosInstance = axios.create({ baseURL: baseUrl, withCredentials: true });
 
 export const postUserRegister = async (data: components['schemas']['CreateUserInput']) => {
   return await axiosInstance.post('/users/register', data);

@@ -1,16 +1,10 @@
 import { baseUrl } from '@/constants/constants';
 import { MutationCache, QueryCache, QueryClient } from '@tanstack/react-query';
-import { type AccessToken, axiosInstance as noAuthInstance } from './User/UserApi';
 import axios from 'axios';
 
-export const axiosInstance = axios.create({ baseURL: baseUrl });
-
-axiosInstance.interceptors.request.use((config) => {
-  const authToken = localStorage.getItem('authToken');
-  if (authToken) {
-    config.headers['Authorization'] = `Bearer ${authToken}`;
-  }
-  return config;
+export const axiosInstance = axios.create({
+  baseURL: baseUrl,
+  withCredentials: true
 });
 
 export const queryClient = new QueryClient({
@@ -41,55 +35,36 @@ export const queryClient = new QueryClient({
 });
 
 const handleSuccessCache = () => {
-  if (location.pathname === '/connection') {
-    location.pathname = '/';
+  if (window.location.pathname === '/connection') {
+    window.location.href = '/';
   }
 };
+
 const handleErrorCache = async (err: unknown) => {
   if (axios.isAxiosError(err)) {
-    if (err.response?.status === 401) {
-      try {
-        await refreshAccessToken();
+    const status = err.response?.status;
 
-        // try to re-execute
-        if (err.config) {
-          if (err.config.method) {
-            return await axiosInstance(err.config);
-          }
-        }
+    if (status === 401) {
+      // queryClient.removeQueries({ queryKey: ['me'] }); to powoduje petle
 
-        return;
-      } catch (error) {
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
-        queryClient.removeQueries();
-        location.reload();
-      }
-    } else if (err.response?.status === 403) {
-      location.pathname = '/forbidden';
-    } else if (err.response?.status === 404) {
-      location.pathname = '/not-found';
+      // const publicPaths = ['/login', '/register'];
+      // if (!publicPaths.includes(window.location.pathname)) {
+      //   window.location.href = '/login';
+      // }
+
+      return;
     }
-  } else {
-    console.error('An unexpected error occurred:', err);
+
+    if (status === 403) {
+      window.location.href = '/forbidden';
+      return;
+    }
+
+    if (status === 404) {
+      window.location.href = '/not-found';
+      return;
+    }
   }
-};
 
-export const refreshAccessToken = async () => {
-  const refToken = localStorage.getItem('refreshToken');
-  const authToken = localStorage.getItem('accessToken');
-
-  try {
-    const response = await noAuthInstance.post('/api/token/refresh', {
-      accessToken: authToken,
-      refreshToken: refToken
-    } as AccessToken);
-    const { accessToken, refreshToken } = response.data as AccessToken;
-
-    localStorage.setItem('accessToken', accessToken);
-    localStorage.setItem('refreshToken', refreshToken);
-    return;
-  } catch (error) {
-    throw new Error('Failed to refresh access token');
-  }
+  console.error('Unhandled error:', err);
 };

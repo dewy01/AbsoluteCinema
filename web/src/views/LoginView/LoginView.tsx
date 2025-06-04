@@ -2,7 +2,7 @@ import { Box, TextField, Button, Link, Paper, Typography } from '@mui/material';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { userLoginSchema, type UserLogin } from '@/schemas/UserLogin';
-import { callUserLogin } from '@/apis/User';
+import { useUserLogin } from '@/apis/User';
 
 export const LoginView = () => {
   const {
@@ -19,18 +19,28 @@ export const LoginView = () => {
     }
   });
 
-  const { mutateAsync } = callUserLogin();
+  const { mutateAsync } = useUserLogin();
 
-  const onSubmit = (data: UserLogin) => {
-    mutateAsync(data, {
-      onSuccess: () => {
-        reset();
-      },
-      onError: (error) => {
-        console.error('Login failed:', error);
-        reset();
-      }
-    });
+  // const onSubmit = async (data: UserLogin) => {
+  //   await mutateAsync(data, {
+  //     onSuccess: () => {
+  //       reset();
+  //     },
+  //     onError: (error) => {
+  //       console.error('Login failed:', error);
+  //       reset();
+  //     }
+  //   });
+  // };
+
+  const onSubmit = async (data: UserLogin) => {
+    try {
+      await mutateAsync(data);
+      reset();
+    } catch (error) {
+      console.error('Login failed:', error);
+      reset();
+    }
   };
 
   return (

@@ -23,16 +23,26 @@ export const RegisterView = () => {
 
   const { mutateAsync } = callUserRegister();
 
-  const onSubmit = (data: UserRegister) => {
-    mutateAsync(data, {
-      onSuccess: () => {
-        reset();
-      },
-      onError: (error) => {
-        console.error('Register failed:', error);
-        reset();
-      }
-    });
+  // const onSubmit = (data: UserRegister) => {
+  //   mutateAsync(data, {
+  //     onSuccess: () => {
+  //       reset();
+  //     },
+  //     onError: (error) => {
+  //       console.error('Register failed:', error);
+  //       reset();
+  //     }
+  //   });
+  // };
+
+  const onSubmit = async (data: UserRegister) => {
+    try {
+      await mutateAsync(data);
+      reset();
+    } catch (error) {
+      console.error('Register failed:', error);
+      reset();
+    }
   };
 
   return (

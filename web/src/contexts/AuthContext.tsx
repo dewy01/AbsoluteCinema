@@ -1,56 +1,65 @@
-import { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { useCurrentUser } from '@/apis/User';
 
 interface AuthContextProps {
   isAuthenticated: boolean;
   isAdmin: boolean;
-  login: (accessToken: string, refreshToken: string, userRole: string) => void;
+  userProps: {
+    id?: string;
+    name?: string;
+    email?: string;
+    role?: string;
+  };
   logout: () => void;
 }
 
-const authContext = createContext<AuthContextProps | undefined>(undefined);
+const AuthContext = createContext<AuthContextProps | undefined>(undefined);
 
 type Props = { children: React.ReactNode };
 
 export const AuthProvider = ({ children }: Props) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    return (
-      localStorage.getItem('accessToken') !== null &&
-      localStorage.getItem('refreshToken') !== null &&
-      localStorage.getItem('userRole') !== null
-    );
+  const { data, isSuccess, isError } = useCurrentUser();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [userProps, setUserProps] = useState({
+    id: '',
+    name: '',
+    email: '',
+    role: ''
   });
 
-  const [isAdmin, setIsAdmin] = useState(() => {
-    return localStorage.getItem('userRole') === 'admin';
-  });
-
-  const login = (accessToken: string, refreshToken: string, userRole: string) => {
-    localStorage.setItem('accessToken', accessToken);
-    localStorage.setItem('refreshToken', refreshToken);
-    localStorage.setItem('userRole', userRole);
-    setIsAuthenticated(true);
-    setIsAdmin(userRole === 'admin');
-  };
+  useEffect(() => {
+    if (isSuccess && data) {
+      setUserProps({
+        id: data.id ?? '',
+        name: data.name ?? '',
+        email: data.email ?? '',
+        role: data.role ?? ''
+      });
+      setIsAuthenticated(true);
+      setIsAdmin(data.role === 'admin');
+    } else if (isError) {
+      setIsAuthenticated(false);
+      setIsAdmin(false);
+      setUserProps({ id: '', name: '', email: '', role: '' });
+    }
+  }, [isSuccess, isError, data]);
 
   const logout = () => {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    localStorage.removeItem('userRole');
     setIsAuthenticated(false);
     setIsAdmin(false);
+    setUserProps({ id: '', name: '', email: '', role: '' });
   };
 
   return (
-    <authContext.Provider value={{ isAuthenticated, isAdmin, login, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, isAdmin, userProps, logout }}>
       {children}
-    </authContext.Provider>
+    </AuthContext.Provider>
   );
 };
 
 export const useAuth = () => {
-  const context = useContext(authContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
+  const context = useContext(AuthContext);
+  if (!context) throw new Error('useAuth must be used within AuthProvider');
   return context;
 };

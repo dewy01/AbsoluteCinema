@@ -37,29 +37,32 @@ export const callUserRegister = () => {
   });
 };
 
-export const callUserLogin = () => {
+export const useUserLogin = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationKey: ['login'],
-    mutationFn: (data: components['schemas']['LoginUserInput']) => postUserLogin(data),
-    onSuccess: () => {
+    mutationFn: postUserLogin,
+    onSuccess: async (data) => {
+      queryClient.setQueryData(['me'], data);
+
       enqueueSnackbar({ message: 'Zalogowano pomyślnie!' });
       navigate('/', { replace: true });
     },
-    onError: (err) => {
-      if (err instanceof AxiosError && err.response?.status === 401) {
-        enqueueSnackbar({
-          variant: 'error',
-          message: 'Nieprawidłowe dane logowania.'
-        });
-      }
+    onError: () => {
+      enqueueSnackbar({
+        variant: 'error',
+        message: 'Nieprawidłowe dane logowania.'
+      });
     }
   });
 };
 
-export const callUserLogout = () => {
+export const useUserLogout = () => {
   const navigate = useNavigate();
   const { logout } = useAuth();
+
   return useMutation({
     mutationKey: ['logout'],
     mutationFn: () => postUserLogout(),
