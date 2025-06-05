@@ -15,6 +15,7 @@ import (
 	"absolutecinema/internal/openapi/gen/screeninggen"
 	"absolutecinema/internal/openapi/gen/usergen"
 	"absolutecinema/internal/service"
+	"absolutecinema/pkg/fsystem"
 	"absolutecinema/pkg/log"
 	"context"
 	"errors"
@@ -23,6 +24,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/spf13/afero"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -41,12 +43,15 @@ func New(cfg *config.AppConfig) (*App, error) {
 		return nil, fmt.Errorf("create logger: %w", err)
 	}
 
+	fs := afero.NewOsFs() // Use OsFs in production
+	areoStorage := fsystem.New("resources", fs)
+
 	db, err := database.New(cfg.DB)
 	if err != nil {
 		return nil, fmt.Errorf("create db connection: %w", err)
 	}
 
-	err = db.Setup()
+	err = db.Setup(cfg.Seed)
 	if err != nil {
 		return nil, fmt.Errorf("setup db: %w", err)
 	}
@@ -60,7 +65,7 @@ func New(cfg *config.AppConfig) (*App, error) {
 	mux := http.NewServeMux()
 
 	repositories := repository.NewRepositories(db.Gorm())
-	services := service.NewServices(repositories, sessionService)
+	services := service.NewServices(repositories, sessionService, areoStorage)
 	handlers := handlers.NewHandlers(services)
 
 	// TODO MIDDLEWARE
@@ -79,6 +84,9 @@ func New(cfg *config.AppConfig) (*App, error) {
 	mux.Handle("/rooms/", roomgen.Handler(handlers.Room))
 	mux.Handle("/screenings/", screeninggen.Handler(handlers.Screening))
 	mux.Handle("/seats/", screeninggen.Handler(handlers.Screening))
+
+	// TODO: unsafe, only for testing purposes
+	mux.Handle("/resources/", http.StripPrefix("/resources/", http.FileServer(http.Dir("./resources"))))
 
 	const defaultTimeout = 10 * time.Second
 	httpServer := &http.Server{

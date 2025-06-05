@@ -12,6 +12,7 @@ import (
 	screening_service "absolutecinema/internal/service/screening"
 	seat_service "absolutecinema/internal/service/seat"
 	userService "absolutecinema/internal/service/user"
+	"absolutecinema/pkg/fsystem"
 )
 
 type Services struct {
@@ -26,13 +27,13 @@ type Services struct {
 	Seat         seat_service.Service
 }
 
-func NewServices(repos *repository.Repositories, sessionService *auth.Service) *Services {
+func NewServices(repos *repository.Repositories, sessionService *auth.Service, areoStorage fsystem.FileStorage) *Services {
 	return &Services{
 		User:         userService.NewUserService(repos.User, sessionService),
 		Actor:        actorService.NewActorService(repos.Actor),
 		Cinema:       cinemaService.NewCinemaService(repos.Cinema),
-		Movie:        movieService.NewMovieService(repos.Movie),
-		Reservation:  reservationService.NewReservationService(repos.Reservation),
+		Movie:        movieService.NewMovieService(repos.Movie, areoStorage),
+		Reservation:  reservationService.NewReservationService(repos.Reservation, areoStorage),
 		ReservedSeat: reserved_seat_Service.NewReservedSeatService(repos.ReservedSeat),
 		Room:         room_service.NewRoomService(repos.Room),
 		Screening:    screening_service.NewScreeningService(repos.Screening),

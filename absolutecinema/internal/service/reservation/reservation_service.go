@@ -2,7 +2,11 @@ package reservation_service
 
 import (
 	"absolutecinema/internal/database/repository/reservation"
+	"absolutecinema/pkg/fsystem"
+	"bytes"
 	"errors"
+	"fmt"
+	"path/filepath"
 
 	"github.com/google/uuid"
 )
@@ -17,10 +21,14 @@ type Service interface {
 
 type service struct {
 	repo reservation.Repository
+	fs   fsystem.FileStorage
 }
 
-func NewReservationService(repo reservation.Repository) *service {
-	return &service{repo: repo}
+func NewReservationService(repo reservation.Repository, fs fsystem.FileStorage) *service {
+	return &service{
+		repo: repo,
+		fs:   fs,
+	}
 }
 
 func (s *service) Create(input CreateReservationInput) (*ReservationOutput, error) {
@@ -31,8 +39,9 @@ func (s *service) Create(input CreateReservationInput) (*ReservationOutput, erro
 		return nil, errors.New("guest name and email are required for guest reservations")
 	}
 
+	id := uuid.New()
 	res := &reservation.Reservation{
-		ID:            uuid.New(),
+		ID:            id,
 		ScreeningID:   input.ScreeningID,
 		UserID:        input.UserID,
 		GuestName:     input.GuestName,
@@ -45,7 +54,31 @@ func (s *service) Create(input CreateReservationInput) (*ReservationOutput, erro
 		return nil, err
 	}
 
-	return toOutput(res), nil
+	pdfBytes, err := generateReservationPDF(res)
+	if err != nil {
+		return nil, fmt.Errorf("generate pdf: %w", err)
+	}
+
+	storagePath := id.String()
+	filename := "reservation-" + id.String() + ".pdf"
+
+	err = s.fs.SaveReservationFile(storagePath, filename, bytes.NewReader(pdfBytes))
+	if err != nil {
+		return nil, fmt.Errorf("save pdf: %w", err)
+	}
+
+	fullPath := filepath.Join("reservations", storagePath, filename)
+
+	if err := s.repo.UpdatePDF(id, fullPath); err != nil {
+		return nil, fmt.Errorf("update pdf path in db: %w", err)
+	}
+
+	updatedRes, err := s.repo.GetByID(id)
+	if err != nil {
+		return nil, err
+	}
+
+	return toOutput(updatedRes), nil
 }
 
 func (s *service) GetByID(id uuid.UUID) (*ReservationOutput, error) {

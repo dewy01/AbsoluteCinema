@@ -1,12 +1,15 @@
 package movie_service
 
-import "github.com/google/uuid"
+import (
+	"github.com/google/uuid"
+	"github.com/oapi-codegen/runtime/types"
+)
 
 type CreateMovieInput struct {
 	Title       string
 	Director    string
 	Description string
-	PhotoPath   string
+	Photo       types.File
 	ActorIDs    []uuid.UUID
 }
 
@@ -14,7 +17,7 @@ type UpdateMovieInput struct {
 	Title       string
 	Director    string
 	Description string
-	PhotoPath   string
+	Photo       types.File
 	ActorIDs    []uuid.UUID
 }
 

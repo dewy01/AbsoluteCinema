@@ -10,7 +10,7 @@ paths:
       requestBody:
         required: true
         content:
-          application/json:
+          multipart/form-data:
             schema:
               $ref: "#/components/schemas/CreateMovieInput"
       responses:
@@ -61,7 +61,7 @@ paths:
       requestBody:
         required: true
         content:
-          application/json:
+          multipart/form-data:
             schema:
               $ref: "#/components/schemas/UpdateMovieInput"
       responses:
@@ -91,6 +91,7 @@ components:
       required:
         - title
         - director
+        - photo
       properties:
         title:
           type: string
@@ -98,13 +99,14 @@ components:
           type: string
         description:
           type: string
-        photoPath:
-          type: string
         actorIDs:
           type: array
           items:
             type: string
             format: uuid
+        photo:
+          type: string
+          format: binary
 
     UpdateMovieInput:
       type: object
@@ -115,13 +117,14 @@ components:
           type: string
         description:
           type: string
-        photoPath:
-          type: string
         actorIDs:
           type: array
           items:
             type: string
             format: uuid
+        photo:
+          type: string
+          format: binary
 
     MovieOutput:
       type: object

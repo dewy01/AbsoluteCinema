@@ -54,7 +54,7 @@ func (h *MovieHandler) PostMovies(w http.ResponseWriter, r *http.Request) {
 		Title:       input.Title,
 		Director:    input.Director,
 		Description: ptr.Deref(input.Description),
-		PhotoPath:   ptr.Deref(input.PhotoPath),
+		Photo:       input.Photo,
 		ActorIDs:    ptr.Deref(input.ActorIDs),
 	})
 	if err != nil {
@@ -109,7 +109,7 @@ func (h *MovieHandler) PutMoviesId(w http.ResponseWriter, r *http.Request, id uu
 		Title:       ptr.Deref(input.Title),
 		Director:    ptr.Deref(input.Director),
 		Description: ptr.Deref(input.Description),
-		PhotoPath:   ptr.Deref(input.PhotoPath),
+		Photo:       *input.Photo,
 		ActorIDs:    ptr.Deref(input.ActorIDs),
 	})
 	if err != nil {

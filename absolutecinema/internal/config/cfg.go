@@ -12,6 +12,7 @@ type AppConfig struct {
 	Mode   Environment
 	Log    LogConfig
 	Server ServerConfig
+	Seed   bool
 	DB     database.Config
 }
 
@@ -48,6 +49,11 @@ func New() (*AppConfig, error) {
 		return nil, err
 	}
 
+	seed, err := strconv.ParseBool(GetEnv("AC_SEED", "true"))
+	if err != nil {
+		return nil, err
+	}
+
 	modeStr := GetEnv("AC_MODE", "dev")
 	mode, err := ParseMode(modeStr)
 	if err != nil {
@@ -76,6 +82,7 @@ func New() (*AppConfig, error) {
 			Host: GetEnv("AC_SERVER_HOST", ""),
 			Port: serverport,
 		},
+		Seed: seed,
 	}
 
 	return cfg, nil

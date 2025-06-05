@@ -19,7 +19,7 @@ type CreateMovieInput struct {
 	ActorIDs    *[]openapi_types.UUID `json:"actorIDs,omitempty"`
 	Description *string               `json:"description,omitempty"`
 	Director    string                `json:"director"`
-	PhotoPath   *string               `json:"photoPath,omitempty"`
+	Photo       openapi_types.File    `json:"photo"`
 	Title       string                `json:"title"`
 }
 
@@ -38,15 +38,15 @@ type UpdateMovieInput struct {
 	ActorIDs    *[]openapi_types.UUID `json:"actorIDs,omitempty"`
 	Description *string               `json:"description,omitempty"`
 	Director    *string               `json:"director,omitempty"`
-	PhotoPath   *string               `json:"photoPath,omitempty"`
+	Photo       *openapi_types.File   `json:"photo,omitempty"`
 	Title       *string               `json:"title,omitempty"`
 }
 
-// PostMoviesJSONRequestBody defines body for PostMovies for application/json ContentType.
-type PostMoviesJSONRequestBody = CreateMovieInput
+// PostMoviesMultipartRequestBody defines body for PostMovies for multipart/form-data ContentType.
+type PostMoviesMultipartRequestBody = CreateMovieInput
 
-// PutMoviesIdJSONRequestBody defines body for PutMoviesId for application/json ContentType.
-type PutMoviesIdJSONRequestBody = UpdateMovieInput
+// PutMoviesIdMultipartRequestBody defines body for PutMoviesId for multipart/form-data ContentType.
+type PutMoviesIdMultipartRequestBody = UpdateMovieInput
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
