@@ -14,6 +14,7 @@ type CreateReservationInput struct {
 	ReservedSeats []reservedseat.ReservedSeat
 }
 
+type ReservedSeat = reservedseat.ReservedSeat
 type ReservedSeatOutput struct {
 	ID     uuid.UUID
 	SeatID uuid.UUID

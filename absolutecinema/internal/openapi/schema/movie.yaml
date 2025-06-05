@@ -1,0 +1,148 @@
+openapi: 3.0.0
+info:
+  title: Cinema API
+  version: 1.0.0
+
+paths:
+  /movies/:
+    post:
+      summary: Create a new movie
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateMovieInput"
+      responses:
+        "201":
+          description: Movie created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MovieOutput"
+        "400":
+          description: Bad request
+
+    get:
+      summary: Get all movies
+      responses:
+        "200":
+          description: List of movies
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MovieOutput"
+
+  /movies/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+
+    get:
+      summary: Get a movie by ID
+      responses:
+        "200":
+          description: Movie found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MovieOutput"
+        "404":
+          description: Movie not found
+
+    put:
+      summary: Update a movie by ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateMovieInput"
+      responses:
+        "200":
+          description: Movie updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MovieOutput"
+        "400":
+          description: Bad request
+        "404":
+          description: Movie not found
+
+    delete:
+      summary: Delete a movie by ID
+      responses:
+        "204":
+          description: Movie deleted successfully
+        "404":
+          description: Movie not found
+
+components:
+  schemas:
+    CreateMovieInput:
+      type: object
+      required:
+        - title
+        - director
+      properties:
+        title:
+          type: string
+        director:
+          type: string
+        description:
+          type: string
+        photoPath:
+          type: string
+        actorIDs:
+          type: array
+          items:
+            type: string
+            format: uuid
+
+    UpdateMovieInput:
+      type: object
+      properties:
+        title:
+          type: string
+        director:
+          type: string
+        description:
+          type: string
+        photoPath:
+          type: string
+        actorIDs:
+          type: array
+          items:
+            type: string
+            format: uuid
+
+    MovieOutput:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          x-go-type: googleuuid.UUID
+          x-go-type-import:
+            path: github.com/google/uuid
+            name: googleuuid
+        title:
+          type: string
+        director:
+          type: string
+        description:
+          type: string
+        photoPath:
+          type: string
+        actorIDs:
+          type: array
+          items:
+            type: string
+            format: uuid

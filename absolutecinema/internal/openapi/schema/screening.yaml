@@ -1,0 +1,168 @@
+openapi: 3.0.0
+info:
+  title: Cinema API
+  version: 1.0.0
+
+paths:
+  /screenings/:
+    post:
+      summary: Create a new screening
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateScreeningInput"
+      responses:
+        "201":
+          description: Screening created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ScreeningOutput"
+        "400":
+          description: Bad request
+
+    get:
+      summary: Get all screenings
+      responses:
+        "200":
+          description: List of screenings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ScreeningOutput"
+
+  /screenings/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+
+    get:
+      summary: Get a screening by ID
+      responses:
+        "200":
+          description: Screening found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ScreeningOutput"
+        "404":
+          description: Screening not found
+
+    put:
+      summary: Update start time of a screening by ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - startTime
+              properties:
+                startTime:
+                  type: string
+                  format: date-time
+      responses:
+        "200":
+          description: Screening updated successfully
+        "400":
+          description: Bad request
+        "404":
+          description: Screening not found
+
+    delete:
+      summary: Delete a screening by ID
+      responses:
+        "204":
+          description: Screening deleted successfully
+        "404":
+          description: Screening not found
+
+  /screenings/movie/{movieID}:
+    parameters:
+      - name: movieID
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+
+    get:
+      summary: Get screenings by movie ID
+      responses:
+        "200":
+          description: List of screenings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ScreeningOutput"
+        "404":
+          description: Movie not found
+
+  /screenings/room/{roomID}:
+    parameters:
+      - name: roomID
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+
+    get:
+      summary: Get screenings by room ID
+      responses:
+        "200":
+          description: List of screenings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ScreeningOutput"
+        "404":
+          description: Room not found
+
+components:
+  schemas:
+    CreateScreeningInput:
+      type: object
+      required:
+        - movieID
+        - roomID
+        - startTime
+      properties:
+        movieID:
+          type: string
+          format: uuid
+        roomID:
+          type: string
+          format: uuid
+        startTime:
+          type: string
+          format: date-time
+
+    ScreeningOutput:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        movieID:
+          type: string
+          format: uuid
+        roomID:
+          type: string
+          format: uuid
+        startTime:
+          type: string
+          format: date-time

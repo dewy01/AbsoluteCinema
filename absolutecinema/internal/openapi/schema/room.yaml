@@ -1,0 +1,165 @@
+openapi: 3.0.0
+info:
+  title: Cinema API
+  version: 1.0.0
+
+paths:
+  /rooms/:
+    post:
+      summary: Create a new room
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateRoomInput"
+      responses:
+        "201":
+          description: Room created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RoomOutput"
+        "400":
+          description: Bad request
+
+  /rooms/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+
+    get:
+      summary: Get a room by ID
+      responses:
+        "200":
+          description: Room found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RoomOutput"
+        "404":
+          description: Room not found
+
+    put:
+      summary: Update a room by ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateRoomInput"
+      responses:
+        "200":
+          description: Room updated successfully
+        "400":
+          description: Bad request
+        "404":
+          description: Room not found
+
+    delete:
+      summary: Delete a room by ID
+      responses:
+        "204":
+          description: Room deleted successfully
+        "404":
+          description: Room not found
+
+  /rooms/cinema/{cinemaID}:
+    parameters:
+      - name: cinemaID
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+
+    get:
+      summary: Get rooms by cinema ID
+      responses:
+        "200":
+          description: List of rooms
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RoomOutput"
+        "404":
+          description: Cinema not found
+
+components:
+  schemas:
+    CreateRoomInput:
+      type: object
+      required:
+        - name
+        - cinemaID
+        - seats
+      properties:
+        name:
+          type: string
+        cinemaID:
+          type: string
+          format: uuid
+        seats:
+          type: array
+          items:
+            $ref: "#/components/schemas/SeatInput"
+
+    UpdateRoomInput:
+      type: object
+      required:
+        - id
+        - name
+        - cinemaID
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        cinemaID:
+          type: string
+          format: uuid
+
+    SeatInput:
+      type: object
+      required:
+        - row
+        - number
+      properties:
+        row:
+          type: string
+        number:
+          type: integer
+
+    RoomOutput:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        cinemaID:
+          type: string
+          format: uuid
+        seats:
+          type: array
+          items:
+            $ref: "#/components/schemas/SeatOutput"
+
+    SeatOutput:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        row:
+          type: string
+        number:
+          type: integer

@@ -9,6 +9,10 @@ import (
 	"absolutecinema/internal/middleware"
 	"absolutecinema/internal/openapi/gen/actorgen"
 	"absolutecinema/internal/openapi/gen/cinemagen"
+	"absolutecinema/internal/openapi/gen/moviegen"
+	"absolutecinema/internal/openapi/gen/reservationgen"
+	"absolutecinema/internal/openapi/gen/roomgen"
+	"absolutecinema/internal/openapi/gen/screeninggen"
 	"absolutecinema/internal/openapi/gen/usergen"
 	"absolutecinema/internal/service"
 	"absolutecinema/pkg/log"
@@ -69,6 +73,12 @@ func New(cfg *config.AppConfig) (*App, error) {
 	mux.Handle("/users/", usergen.Handler(handlers.User))
 	mux.Handle("/actors/", actorgen.Handler(handlers.Actor))
 	mux.Handle("/cinemas/", cinemagen.Handler(handlers.Cinema))
+	mux.Handle("/movies/", moviegen.Handler(handlers.Movie))
+	mux.Handle("/reservations/", reservationgen.Handler(handlers.Reservation))
+	mux.Handle("/reserved-seats/", reservationgen.Handler(handlers.Reservation))
+	mux.Handle("/rooms/", roomgen.Handler(handlers.Room))
+	mux.Handle("/screenings/", screeninggen.Handler(handlers.Screening))
+	mux.Handle("/seats/", screeninggen.Handler(handlers.Screening))
 
 	const defaultTimeout = 10 * time.Second
 	httpServer := &http.Server{

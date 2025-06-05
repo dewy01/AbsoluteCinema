@@ -1,0 +1,112 @@
+openapi: 3.0.0
+info:
+  title: Cinema API
+  version: 1.0.0
+
+paths:
+  /reserved-seats/:
+    post:
+      summary: Create a reserved seat
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateReservedSeatInput"
+      responses:
+        "201":
+          description: Reserved seat created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReservedSeatOutput"
+        "400":
+          description: Bad request
+
+  /reserved-seats/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+
+    get:
+      summary: Get reserved seat by ID
+      responses:
+        "200":
+          description: Reserved seat found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReservedSeatOutput"
+        "404":
+          description: Reserved seat not found
+
+    delete:
+      summary: Delete reserved seat by ID
+      responses:
+        "204":
+          description: Reserved seat deleted successfully
+        "404":
+          description: Reserved seat not found
+
+  /reserved-seats/reservation/{reservationID}:
+    parameters:
+      - name: reservationID
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+
+    get:
+      summary: Get reserved seats by reservation ID
+      responses:
+        "200":
+          description: List of reserved seats
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ReservedSeatOutput"
+        "404":
+          description: Reservation not found
+
+    delete:
+      summary: Delete all reserved seats for a reservation
+      responses:
+        "204":
+          description: Reserved seats deleted successfully
+        "404":
+          description: Reservation not found
+
+components:
+  schemas:
+    CreateReservedSeatInput:
+      type: object
+      required:
+        - reservationID
+        - seatID
+      properties:
+        reservationID:
+          type: string
+          format: uuid
+        seatID:
+          type: string
+          format: uuid
+
+    ReservedSeatOutput:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        reservationID:
+          type: string
+          format: uuid
+        seatID:
+          type: string
+          format: uuid
