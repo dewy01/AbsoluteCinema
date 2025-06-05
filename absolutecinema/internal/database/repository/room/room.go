@@ -2,6 +2,7 @@ package room
 
 import (
 	"absolutecinema/internal/database/models"
+	"absolutecinema/internal/database/repository/cinema"
 	"absolutecinema/internal/database/repository/seat"
 
 	"github.com/google/uuid"
@@ -11,6 +12,7 @@ type Room struct {
 	ID       uuid.UUID
 	Name     string
 	CinemaID uuid.UUID
+	Cinema   cinema.Cinema
 	Seats    []seat.Seat
 }
 

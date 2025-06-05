@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/google/uuid"
+	"github.com/oapi-codegen/runtime/types"
 )
 
 type ScreeningHandler struct {
@@ -18,8 +19,9 @@ func NewScreeningHandler(svc screening_service.Service) *ScreeningHandler {
 }
 
 // GET /screenings
-func (h *ScreeningHandler) GetScreenings(w http.ResponseWriter, r *http.Request) {
-	screenings, err := h.Service.GetAll()
+func (h *ScreeningHandler) GetScreenings(w http.ResponseWriter, r *http.Request, params screeninggen.GetScreeningsParams) {
+	time := optionalDateToTime(params.Day)
+	screenings, err := h.Service.GetAll(time)
 	if err != nil {
 		http.Error(w, "Failed to get screenings", http.StatusInternalServerError)
 		return
@@ -27,12 +29,7 @@ func (h *ScreeningHandler) GetScreenings(w http.ResponseWriter, r *http.Request)
 
 	var resp []screeninggen.ScreeningOutput
 	for _, s := range screenings {
-		resp = append(resp, screeninggen.ScreeningOutput{
-			Id:        &s.ID,
-			MovieID:   &s.MovieID,
-			RoomID:    &s.RoomID,
-			StartTime: &s.StartTime,
-		})
+		resp = append(resp, toScreeningOutput(s))
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -57,16 +54,7 @@ func (h *ScreeningHandler) PostScreenings(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	resp := screeninggen.ScreeningOutput{
-		Id:        &screeningOut.ID,
-		MovieID:   &screeningOut.MovieID,
-		RoomID:    &screeningOut.RoomID,
-		StartTime: &screeningOut.StartTime,
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(resp)
+	writeJSON(w, http.StatusCreated, toScreeningOutput(*screeningOut))
 }
 
 // GET /screenings/{id}
@@ -77,15 +65,7 @@ func (h *ScreeningHandler) GetScreeningsId(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	resp := screeninggen.ScreeningOutput{
-		Id:        &screeningOut.ID,
-		MovieID:   &screeningOut.MovieID,
-		RoomID:    &screeningOut.RoomID,
-		StartTime: &screeningOut.StartTime,
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(resp)
+	writeJSON(w, http.StatusCreated, toScreeningOutput(*screeningOut))
 }
 
 // PUT /screenings/{id}
@@ -115,8 +95,9 @@ func (h *ScreeningHandler) DeleteScreeningsId(w http.ResponseWriter, r *http.Req
 }
 
 // GET /screenings/movie/{movieID}
-func (h *ScreeningHandler) GetScreeningsMovieMovieID(w http.ResponseWriter, r *http.Request, movieID uuid.UUID) {
-	screenings, err := h.Service.GetByMovie(movieID)
+func (h *ScreeningHandler) GetScreeningsMovieMovieID(w http.ResponseWriter, r *http.Request, movieID uuid.UUID, params screeninggen.GetScreeningsMovieMovieIDParams) {
+	time := optionalDateToTime(params.Day)
+	screenings, err := h.Service.GetByMovie(movieID, time)
 	if err != nil {
 		http.Error(w, "Failed to get screenings by movie ID", http.StatusInternalServerError)
 		return
@@ -124,21 +105,16 @@ func (h *ScreeningHandler) GetScreeningsMovieMovieID(w http.ResponseWriter, r *h
 
 	var resp []screeninggen.ScreeningOutput
 	for _, s := range screenings {
-		resp = append(resp, screeninggen.ScreeningOutput{
-			Id:        &s.ID,
-			MovieID:   &s.MovieID,
-			RoomID:    &s.RoomID,
-			StartTime: &s.StartTime,
-		})
+		resp = append(resp, toScreeningOutput(s))
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(resp)
+	writeJSON(w, http.StatusOK, resp)
 }
 
 // GET /screenings/room/{roomID}
-func (h *ScreeningHandler) GetScreeningsRoomRoomID(w http.ResponseWriter, r *http.Request, roomID uuid.UUID) {
-	screenings, err := h.Service.GetByRoom(roomID)
+func (h *ScreeningHandler) GetScreeningsRoomRoomID(w http.ResponseWriter, r *http.Request, roomID uuid.UUID, params screeninggen.GetScreeningsRoomRoomIDParams) {
+	time := optionalDateToTime(params.Day)
+	screenings, err := h.Service.GetByRoom(roomID, time)
 	if err != nil {
 		http.Error(w, "Failed to get screenings by room ID", http.StatusInternalServerError)
 		return
@@ -146,14 +122,25 @@ func (h *ScreeningHandler) GetScreeningsRoomRoomID(w http.ResponseWriter, r *htt
 
 	var resp []screeninggen.ScreeningOutput
 	for _, s := range screenings {
-		resp = append(resp, screeninggen.ScreeningOutput{
-			Id:        &s.ID,
-			MovieID:   &s.MovieID,
-			RoomID:    &s.RoomID,
-			StartTime: &s.StartTime,
-		})
+		resp = append(resp, toScreeningOutput(s))
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(resp)
+	writeJSON(w, http.StatusOK, resp)
+}
+
+// GET /screenings/cinema/{cinemaID}
+func (h *ScreeningHandler) GetScreeningsCinemaCinemaID(w http.ResponseWriter, r *http.Request, cinemaID types.UUID, params screeninggen.GetScreeningsCinemaCinemaIDParams) {
+	time := optionalDateToTime(params.Day)
+	screenings, err := h.Service.GetByCinema(cinemaID, time)
+	if err != nil {
+		http.Error(w, "Failed to get screenings by cinema ID", http.StatusInternalServerError)
+		return
+	}
+
+	var resp []screeninggen.ScreeningOutput
+	for _, s := range screenings {
+		resp = append(resp, toScreeningOutput(s))
+	}
+
+	writeJSON(w, http.StatusOK, resp)
 }

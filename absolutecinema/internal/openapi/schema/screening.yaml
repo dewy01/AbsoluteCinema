@@ -25,6 +25,8 @@ paths:
 
     get:
       summary: Get all screenings
+      parameters:
+        - $ref: "#/components/parameters/DayFilter"
       responses:
         "200":
           description: List of screenings
@@ -94,7 +96,7 @@ paths:
         schema:
           type: string
           format: uuid
-
+      - $ref: "#/components/parameters/DayFilter"
     get:
       summary: Get screenings by movie ID
       responses:
@@ -117,7 +119,7 @@ paths:
         schema:
           type: string
           format: uuid
-
+      - $ref: "#/components/parameters/DayFilter"
     get:
       summary: Get screenings by room ID
       responses:
@@ -132,7 +134,40 @@ paths:
         "404":
           description: Room not found
 
+  /screenings/cinema/{cinemaID}:
+    parameters:
+      - name: cinemaID
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - $ref: "#/components/parameters/DayFilter"
+    get:
+      summary: Get screenings by cinema ID
+      responses:
+        "200":
+          description: List of screenings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ScreeningOutput"
+        "404":
+          description: Cinema not found
+
 components:
+  parameters:
+    DayFilter:
+      name: day
+      in: query
+      required: false
+      schema:
+        type: string
+        format: date
+      description: Filter screenings by date (YYYY-MM-DD)
+
   schemas:
     CreateScreeningInput:
       type: object
@@ -157,12 +192,34 @@ components:
         id:
           type: string
           format: uuid
-        movieID:
-          type: string
-          format: uuid
-        roomID:
-          type: string
-          format: uuid
         startTime:
           type: string
           format: date-time
+        movie:
+          $ref: "#/components/schemas/MovieOutput"
+        room:
+          $ref: "#/components/schemas/RoomOutput"
+
+    MovieOutput:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        director:
+          type: string
+        description:
+          type: string
+        photoPath:
+          type: string
+
+    RoomOutput:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string

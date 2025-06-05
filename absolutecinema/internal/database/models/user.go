@@ -12,5 +12,5 @@ type User struct {
 	Email        string `gorm:"unique"`
 	Role         auth.Role
 	Password     string
-	Reservations []Reservation
+	Reservations []Reservation `gorm:"foreignKey:UserID"`
 }

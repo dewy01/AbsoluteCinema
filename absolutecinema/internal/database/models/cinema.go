@@ -6,5 +6,5 @@ type Cinema struct {
 	ID      uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
 	Name    string
 	Address string
-	Rooms   []Room
+	Rooms   []Room `gorm:"foreignKey:CinemaID"`
 }

@@ -21,12 +21,54 @@ type CreateScreeningInput struct {
 	StartTime time.Time          `json:"startTime"`
 }
 
+// MovieOutput defines model for MovieOutput.
+type MovieOutput struct {
+	Description *string             `json:"description,omitempty"`
+	Director    *string             `json:"director,omitempty"`
+	Id          *openapi_types.UUID `json:"id,omitempty"`
+	PhotoPath   *string             `json:"photoPath,omitempty"`
+	Title       *string             `json:"title,omitempty"`
+}
+
+// RoomOutput defines model for RoomOutput.
+type RoomOutput struct {
+	Id   *openapi_types.UUID `json:"id,omitempty"`
+	Name *string             `json:"name,omitempty"`
+}
+
 // ScreeningOutput defines model for ScreeningOutput.
 type ScreeningOutput struct {
 	Id        *openapi_types.UUID `json:"id,omitempty"`
-	MovieID   *openapi_types.UUID `json:"movieID,omitempty"`
-	RoomID    *openapi_types.UUID `json:"roomID,omitempty"`
+	Movie     *MovieOutput        `json:"movie,omitempty"`
+	Room      *RoomOutput         `json:"room,omitempty"`
 	StartTime *time.Time          `json:"startTime,omitempty"`
+}
+
+// DayFilter defines model for DayFilter.
+type DayFilter = openapi_types.Date
+
+// GetScreeningsParams defines parameters for GetScreenings.
+type GetScreeningsParams struct {
+	// Day Filter screenings by date (YYYY-MM-DD)
+	Day *DayFilter `form:"day,omitempty" json:"day,omitempty"`
+}
+
+// GetScreeningsCinemaCinemaIDParams defines parameters for GetScreeningsCinemaCinemaID.
+type GetScreeningsCinemaCinemaIDParams struct {
+	// Day Filter screenings by date (YYYY-MM-DD)
+	Day *DayFilter `form:"day,omitempty" json:"day,omitempty"`
+}
+
+// GetScreeningsMovieMovieIDParams defines parameters for GetScreeningsMovieMovieID.
+type GetScreeningsMovieMovieIDParams struct {
+	// Day Filter screenings by date (YYYY-MM-DD)
+	Day *DayFilter `form:"day,omitempty" json:"day,omitempty"`
+}
+
+// GetScreeningsRoomRoomIDParams defines parameters for GetScreeningsRoomRoomID.
+type GetScreeningsRoomRoomIDParams struct {
+	// Day Filter screenings by date (YYYY-MM-DD)
+	Day *DayFilter `form:"day,omitempty" json:"day,omitempty"`
 }
 
 // PutScreeningsIdJSONBody defines parameters for PutScreeningsId.
@@ -44,16 +86,19 @@ type PutScreeningsIdJSONRequestBody PutScreeningsIdJSONBody
 type ServerInterface interface {
 	// Get all screenings
 	// (GET /screenings/)
-	GetScreenings(w http.ResponseWriter, r *http.Request)
+	GetScreenings(w http.ResponseWriter, r *http.Request, params GetScreeningsParams)
 	// Create a new screening
 	// (POST /screenings/)
 	PostScreenings(w http.ResponseWriter, r *http.Request)
+	// Get screenings by cinema ID
+	// (GET /screenings/cinema/{cinemaID})
+	GetScreeningsCinemaCinemaID(w http.ResponseWriter, r *http.Request, cinemaID openapi_types.UUID, params GetScreeningsCinemaCinemaIDParams)
 	// Get screenings by movie ID
 	// (GET /screenings/movie/{movieID})
-	GetScreeningsMovieMovieID(w http.ResponseWriter, r *http.Request, movieID openapi_types.UUID)
+	GetScreeningsMovieMovieID(w http.ResponseWriter, r *http.Request, movieID openapi_types.UUID, params GetScreeningsMovieMovieIDParams)
 	// Get screenings by room ID
 	// (GET /screenings/room/{roomID})
-	GetScreeningsRoomRoomID(w http.ResponseWriter, r *http.Request, roomID openapi_types.UUID)
+	GetScreeningsRoomRoomID(w http.ResponseWriter, r *http.Request, roomID openapi_types.UUID, params GetScreeningsRoomRoomIDParams)
 	// Delete a screening by ID
 	// (DELETE /screenings/{id})
 	DeleteScreeningsId(w http.ResponseWriter, r *http.Request, id openapi_types.UUID)
@@ -77,8 +122,21 @@ type MiddlewareFunc func(http.Handler) http.Handler
 // GetScreenings operation middleware
 func (siw *ServerInterfaceWrapper) GetScreenings(w http.ResponseWriter, r *http.Request) {
 
+	var err error
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetScreeningsParams
+
+	// ------------- Optional query parameter "day" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "day", r.URL.Query(), &params.Day)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "day", Err: err})
+		return
+	}
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetScreenings(w, r)
+		siw.Handler.GetScreenings(w, r, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -102,6 +160,42 @@ func (siw *ServerInterfaceWrapper) PostScreenings(w http.ResponseWriter, r *http
 	handler.ServeHTTP(w, r)
 }
 
+// GetScreeningsCinemaCinemaID operation middleware
+func (siw *ServerInterfaceWrapper) GetScreeningsCinemaCinemaID(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "cinemaID" -------------
+	var cinemaID openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "cinemaID", r.PathValue("cinemaID"), &cinemaID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "cinemaID", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetScreeningsCinemaCinemaIDParams
+
+	// ------------- Optional query parameter "day" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "day", r.URL.Query(), &params.Day)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "day", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetScreeningsCinemaCinemaID(w, r, cinemaID, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // GetScreeningsMovieMovieID operation middleware
 func (siw *ServerInterfaceWrapper) GetScreeningsMovieMovieID(w http.ResponseWriter, r *http.Request) {
 
@@ -116,8 +210,19 @@ func (siw *ServerInterfaceWrapper) GetScreeningsMovieMovieID(w http.ResponseWrit
 		return
 	}
 
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetScreeningsMovieMovieIDParams
+
+	// ------------- Optional query parameter "day" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "day", r.URL.Query(), &params.Day)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "day", Err: err})
+		return
+	}
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetScreeningsMovieMovieID(w, r, movieID)
+		siw.Handler.GetScreeningsMovieMovieID(w, r, movieID, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -141,8 +246,19 @@ func (siw *ServerInterfaceWrapper) GetScreeningsRoomRoomID(w http.ResponseWriter
 		return
 	}
 
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetScreeningsRoomRoomIDParams
+
+	// ------------- Optional query parameter "day" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "day", r.URL.Query(), &params.Day)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "day", Err: err})
+		return
+	}
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetScreeningsRoomRoomID(w, r, roomID)
+		siw.Handler.GetScreeningsRoomRoomID(w, r, roomID, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -349,6 +465,7 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 
 	m.HandleFunc("GET "+options.BaseURL+"/screenings/", wrapper.GetScreenings)
 	m.HandleFunc("POST "+options.BaseURL+"/screenings/", wrapper.PostScreenings)
+	m.HandleFunc("GET "+options.BaseURL+"/screenings/cinema/{cinemaID}", wrapper.GetScreeningsCinemaCinemaID)
 	m.HandleFunc("GET "+options.BaseURL+"/screenings/movie/{movieID}", wrapper.GetScreeningsMovieMovieID)
 	m.HandleFunc("GET "+options.BaseURL+"/screenings/room/{roomID}", wrapper.GetScreeningsRoomRoomID)
 	m.HandleFunc("DELETE "+options.BaseURL+"/screenings/{id}", wrapper.DeleteScreeningsId)

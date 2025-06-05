@@ -11,9 +11,10 @@ import (
 type Service interface {
 	Create(input CreateScreeningInput) (*ScreeningOutput, error)
 	GetByID(id uuid.UUID) (*ScreeningOutput, error)
-	GetByMovie(movieID uuid.UUID) ([]ScreeningOutput, error)
-	GetByRoom(roomID uuid.UUID) ([]ScreeningOutput, error)
-	GetAll() ([]ScreeningOutput, error)
+	GetByMovie(movieID uuid.UUID, day *time.Time) ([]ScreeningOutput, error)
+	GetByRoom(roomID uuid.UUID, day *time.Time) ([]ScreeningOutput, error)
+	GetByCinema(cinemaID uuid.UUID, day *time.Time) ([]ScreeningOutput, error)
+	GetAll(day *time.Time) ([]ScreeningOutput, error)
 	UpdateStartTime(id uuid.UUID, newTime time.Time) error
 	Delete(id uuid.UUID) error
 }
@@ -32,7 +33,7 @@ func (s *service) Create(input CreateScreeningInput) (*ScreeningOutput, error) {
 	}
 
 	screeningID := uuid.New()
-	newScreening := &screening.Screening{
+	newScreening := &screening.ScreeningInput{
 		ID:        screeningID,
 		MovieID:   input.MovieID,
 		RoomID:    input.RoomID,
@@ -43,7 +44,12 @@ func (s *service) Create(input CreateScreeningInput) (*ScreeningOutput, error) {
 		return nil, err
 	}
 
-	return toOutput(newScreening), nil
+	createdScreening, err := s.repo.GetByID(screeningID)
+	if err != nil {
+		return nil, err
+	}
+
+	return toOutput(createdScreening), nil
 }
 
 func (s *service) GetByID(id uuid.UUID) (*ScreeningOutput, error) {
@@ -54,43 +60,36 @@ func (s *service) GetByID(id uuid.UUID) (*ScreeningOutput, error) {
 	return toOutput(sc), nil
 }
 
-func (s *service) GetByMovie(movieID uuid.UUID) ([]ScreeningOutput, error) {
-	scs, err := s.repo.GetByMovie(movieID)
+func (s *service) GetByMovie(movieID uuid.UUID, day *time.Time) ([]ScreeningOutput, error) {
+	scs, err := s.repo.GetByMovie(movieID, day)
 	if err != nil {
 		return nil, err
 	}
-
-	result := make([]ScreeningOutput, len(scs))
-	for i, s := range scs {
-		result[i] = *toOutput(&s)
-	}
-	return result, nil
+	return mapToOutput(scs), nil
 }
 
-func (s *service) GetByRoom(roomID uuid.UUID) ([]ScreeningOutput, error) {
-	scs, err := s.repo.GetByRoom(roomID)
+func (s *service) GetByRoom(roomID uuid.UUID, day *time.Time) ([]ScreeningOutput, error) {
+	scs, err := s.repo.GetByRoom(roomID, day)
 	if err != nil {
 		return nil, err
 	}
-
-	result := make([]ScreeningOutput, len(scs))
-	for i, s := range scs {
-		result[i] = *toOutput(&s)
-	}
-	return result, nil
+	return mapToOutput(scs), nil
 }
 
-func (s *service) GetAll() ([]ScreeningOutput, error) {
-	scs, err := s.repo.GetAll()
+func (s *service) GetByCinema(cinemaID uuid.UUID, day *time.Time) ([]ScreeningOutput, error) {
+	scs, err := s.repo.GetByCinema(cinemaID, day)
 	if err != nil {
 		return nil, err
 	}
+	return mapToOutput(scs), nil
+}
 
-	result := make([]ScreeningOutput, len(scs))
-	for i, s := range scs {
-		result[i] = *toOutput(&s)
+func (s *service) GetAll(day *time.Time) ([]ScreeningOutput, error) {
+	scs, err := s.repo.GetAll(day)
+	if err != nil {
+		return nil, err
 	}
-	return result, nil
+	return mapToOutput(scs), nil
 }
 
 func (s *service) UpdateStartTime(id uuid.UUID, newTime time.Time) error {

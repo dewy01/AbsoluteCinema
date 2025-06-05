@@ -8,6 +8,6 @@ type Movie struct {
 	Director    string
 	Description string
 	PhotoPath   string
-	Actors      []Actor `gorm:"many2many:movie_actors;"`
-	Screenings  []Screening
+	Actors      []Actor     `gorm:"many2many:movie_actors;"`
+	Screenings  []Screening `gorm:"foreignKey:MovieID"`
 }
