@@ -26,6 +26,12 @@ const Register = lazy(() =>
   }))
 );
 
+const Movie = lazy(() =>
+  import('@/views/MovieView').then((module) => ({
+    default: module.MovieView
+  }))
+);
+
 export const Router = () => {
   return (
     <Suspense fallback={<Progress />}>
@@ -34,6 +40,7 @@ export const Router = () => {
           <Route index element={<Home />} />
           <Route path="login" element={<Login />} />
           <Route path="register" element={<Register />} />
+          <Route path="movie/:id" element={<Movie />} />
         </Route>
       </Routes>
     </Suspense>

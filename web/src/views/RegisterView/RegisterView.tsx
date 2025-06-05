@@ -1,8 +1,9 @@
-import { Box, TextField, Button, Paper, Typography, Link } from '@mui/material';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { userRegisterSchema, type UserRegister } from '@/schemas/UserRegister';
 import { callUserRegister } from '@/apis/User';
+import { userRegisterSchema, type UserRegister } from '@/schemas/UserRegister';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Box, Button, Paper, TextField, Typography } from '@mui/material';
+import { useForm } from 'react-hook-form';
+import { NavLink } from 'react-router-dom';
 
 export const RegisterView = () => {
   const {
@@ -23,31 +24,14 @@ export const RegisterView = () => {
 
   const { mutateAsync } = callUserRegister();
 
-  // const onSubmit = (data: UserRegister) => {
-  //   mutateAsync(data, {
-  //     onSuccess: () => {
-  //       reset();
-  //     },
-  //     onError: (error) => {
-  //       console.error('Register failed:', error);
-  //       reset();
-  //     }
-  //   });
-  // };
-
   const onSubmit = async (data: UserRegister) => {
-    try {
-      await mutateAsync(data);
+    mutateAsync(data).then(() => {
       reset();
-    } catch (error) {
-      console.error('Register failed:', error);
-      reset();
-    }
+    });
   };
 
   return (
     <Box
-      component="section"
       sx={{
         display: 'flex',
         flex: 1,
@@ -58,12 +42,17 @@ export const RegisterView = () => {
       <Paper
         elevation={6}
         sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          minWidth: '350px',
+          minHeight: '450px',
           p: 4,
-          borderRadius: 3,
-          backgroundColor: 'background.paper',
-          minWidth: '300px'
+          px: 6,
+          gap: 4,
+          borderRadius: 3
         }}>
-        <Typography variant="h5" component="h1" align="center" sx={{ mb: 2, fontWeight: 'bold' }}>
+        <Typography variant="h5" component="h1" align="center" fontWeight={700}>
           Zarejestruj się
         </Typography>
 
@@ -72,9 +61,10 @@ export const RegisterView = () => {
           onSubmit={handleSubmit(onSubmit)}
           sx={{
             display: 'flex',
+            flex: 1,
             flexDirection: 'column',
             alignItems: 'center',
-            '& .MuiTextField-root': { m: 1, width: '25ch' }
+            gap: 2
           }}
           noValidate
           autoComplete="off">
@@ -83,6 +73,7 @@ export const RegisterView = () => {
             {...register('name')}
             error={!!errors.name}
             helperText={errors.name?.message}
+            sx={{ width: '250px' }}
           />
 
           <TextField
@@ -90,6 +81,7 @@ export const RegisterView = () => {
             {...register('email')}
             error={!!errors.email}
             helperText={errors.email?.message}
+            sx={{ width: '250px' }}
           />
 
           <TextField
@@ -98,6 +90,7 @@ export const RegisterView = () => {
             {...register('password')}
             error={!!errors.password}
             helperText={errors.password?.message}
+            sx={{ width: '250px' }}
           />
 
           <TextField
@@ -106,21 +99,17 @@ export const RegisterView = () => {
             {...register('confirmPassword')}
             error={!!errors.confirmPassword}
             helperText={errors.confirmPassword?.message}
+            sx={{ width: '250px' }}
           />
 
-          <Button
-            type="submit"
-            variant="contained"
-            color="primary"
-            sx={{ mt: 2, width: '25ch' }}
-            disabled={isSubmitting}>
+          <Button type="submit" variant="contained" color="primary" disabled={isSubmitting}>
             Zarejestruj się
           </Button>
-
-          <Link href="/login" underline="hover" sx={{ mt: 1, fontSize: '0.875rem' }}>
-            Masz już konto? Zaloguj się
-          </Link>
         </Box>
+
+        <NavLink to="/login" style={{ fontSize: '0.875rem' }}>
+          Masz już konto? Zaloguj się
+        </NavLink>
       </Paper>
     </Box>
   );

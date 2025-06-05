@@ -1,43 +1,38 @@
-import * as React from 'react';
+import { useUserLogout } from '@/apis/User';
+import { selectedCinemaAtom } from '@/atoms/cinemaAtom';
+import { useAuth } from '@/contexts';
+import LogoIcon from '@/utils/Icons/LogoIcon';
+import MenuIcon from '@mui/icons-material/Menu';
 import {
   AppBar,
-  Box,
-  Toolbar,
-  IconButton,
-  Typography,
-  Container,
   Avatar,
+  Box,
   Button,
-  Tooltip,
+  Container,
+  Dialog,
+  IconButton,
   Menu,
   MenuItem,
-  Modal
+  Toolbar,
+  Tooltip,
+  Typography
 } from '@mui/material';
-import { Grid } from '@mui/material';
-import MenuIcon from '@mui/icons-material/Menu';
-import AdbIcon from '@mui/icons-material/Adb';
-import LogoIcon from '@/utils/Icons/LogoIcon';
-import { useAuth } from '@/contexts';
-import { useNavigate } from 'react-router-dom';
-import { useCinema } from '@/contexts/CinemaContext';
-import { useUserLogout } from '@/apis/User';
-
-const cinemaList = ['Cinema City', 'Multikino', 'Helios', 'Test']; // TODO
+import { useAtom } from 'jotai';
+import * as React from 'react';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { CinemaBox } from '../CinemaBox/CinemaBox';
 
 function Navbar() {
   const { isAuthenticated } = useAuth();
   const { mutateAsync } = useUserLogout();
   const navigate = useNavigate();
-
-  const { selectedCinema, isCinemaModalOpen, openCinemaModal, closeCinemaModal, selectCinema } =
-    useCinema();
-
-  // const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(null);
+  const [selectedCinema] = useAtom(selectedCinemaAtom);
+  const [isCinemaModalOpen, setCinemaModalOpen] = React.useState(false);
   const [anchorElUser, setAnchorElUser] = React.useState<null | HTMLElement>(null);
 
-  // const handleOpenNavMenu = (event: React.MouseEvent<HTMLElement>) => {
-  //   setAnchorElNav(event.currentTarget);
-  // };
+  const openCinemaModal = () => setCinemaModalOpen(true);
+  const closeCinemaModal = () => setCinemaModalOpen(false);
+
   const handleOpenUserMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorElUser(event.currentTarget);
   };
@@ -46,31 +41,28 @@ function Navbar() {
     setAnchorElUser(null);
   };
 
-  // const handleCloseNavMenu = () => {
-  //   setAnchorElNav(null);
-  // };
-
   return (
     <AppBar position="static">
       <Container maxWidth="xl">
         <Toolbar disableGutters>
-          <LogoIcon />
-          <Typography
-            variant="h6"
-            noWrap
-            component="a"
-            href="/"
-            sx={{
-              mr: 2,
-              display: { xs: 'none', md: 'flex' },
-              fontFamily: 'monospace',
-              fontWeight: 700,
-              letterSpacing: '.3rem',
-              color: 'inherit',
-              textDecoration: 'none'
-            }}>
-            ABSOLUTE CINEMA
-          </Typography>
+          <NavLink
+            to={'/'}
+            style={{ display: 'flex', gap: 4, justifyContent: 'center', alignItems: 'center' }}>
+            <LogoIcon />
+            <Typography
+              variant="h6"
+              sx={{
+                mr: 2,
+                display: { xs: 'none', md: 'flex' },
+                fontFamily: 'monospace',
+                fontWeight: 700,
+                letterSpacing: '.3rem',
+                color: 'inherit',
+                textDecoration: 'none'
+              }}>
+              ABSOLUTE CINEMA
+            </Typography>
+          </NavLink>
 
           {/* Hamburger (mobile) */}
           <Box sx={{ flexGrow: 1, display: { xs: 'flex', md: 'none' } }}>
@@ -79,30 +71,10 @@ function Navbar() {
             </IconButton>
           </Box>
 
-          {/* Ikona i logo (mobile) */}
-          <AdbIcon sx={{ display: { xs: 'flex', md: 'none' }, mr: 1 }} />
-          <Typography
-            variant="h5"
-            noWrap
-            component="a"
-            href="#"
-            sx={{
-              mr: 2,
-              display: { xs: 'flex', md: 'none' },
-              flexGrow: 1,
-              fontFamily: 'monospace',
-              fontWeight: 700,
-              letterSpacing: '.3rem',
-              color: 'inherit',
-              textDecoration: 'none'
-            }}>
-            LOGO
-          </Typography>
-
-          {/* Wybrany kino (desktop) */}
+          {/* Selected cinema (desktop) */}
           <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' }, alignItems: 'center' }}>
             <Button onClick={openCinemaModal} sx={{ my: 2, color: 'white', display: 'block' }}>
-              {selectedCinema ? `Kino: ${selectedCinema}` : 'Wybierz kino'}
+              {selectedCinema ? `Kino: ${selectedCinema.name}` : 'Wybierz kino'}
             </Button>
           </Box>
 
@@ -126,8 +98,8 @@ function Navbar() {
                   onClose={handleCloseUserMenu}>
                   <MenuItem
                     onClick={() => {
-                      handleCloseUserMenu();
                       mutateAsync();
+                      handleCloseUserMenu();
                     }}>
                     <Typography textAlign="center">Wyloguj się</Typography>
                   </MenuItem>
@@ -147,63 +119,9 @@ function Navbar() {
         </Toolbar>
       </Container>
 
-      <Modal open={isCinemaModalOpen} onClose={closeCinemaModal}>
-        <Box
-          sx={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            maxHeight: '70vh',
-            overflowY: 'auto',
-            width: 600,
-            bgcolor: 'background.paper',
-            borderRadius: 2,
-            boxShadow: 24,
-            pt: 0,
-            pr: 4,
-            pb: 4,
-            pl: 4
-          }}>
-          <Container
-            component="div"
-            sx={{
-              position: 'sticky',
-              top: 0,
-              zIndex: 1,
-              bgcolor: 'background.paper',
-              py: 0.5,
-              my: 1,
-              mb: 1
-            }}>
-            <Typography variant="h6" sx={{ mb: 1 }}>
-              Wybierz kino
-            </Typography>
-          </Container>
-
-          <Grid container spacing={2}>
-            {cinemaList.map((cinema, index) => (
-              <Button
-                key={index}
-                variant="outlined"
-                fullWidth
-                onClick={() => selectCinema(cinema)}
-                sx={{
-                  color: 'white',
-                  borderColor: 'white',
-                  '&:hover': {
-                    backgroundColor: 'white',
-                    color: 'black',
-                    borderColor: 'white'
-                  },
-                  textTransform: 'none'
-                }}>
-                {cinema}
-              </Button>
-            ))}
-          </Grid>
-        </Box>
-      </Modal>
+      <Dialog open={isCinemaModalOpen} onClose={closeCinemaModal}>
+        <CinemaBox onClose={closeCinemaModal} />
+      </Dialog>
     </AppBar>
   );
 }

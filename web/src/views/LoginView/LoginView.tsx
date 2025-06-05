@@ -1,8 +1,8 @@
-import { Box, TextField, Button, Link, Paper, Typography } from '@mui/material';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { userLoginSchema, type UserLogin } from '@/schemas/UserLogin';
 import { useUserLogin } from '@/apis/User';
+import { userLoginSchema, type UserLogin } from '@/schemas/UserLogin';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Box, Button, Paper, TextField, Typography } from '@mui/material';
+import { useForm } from 'react-hook-form';
 
 export const LoginView = () => {
   const {
@@ -34,18 +34,13 @@ export const LoginView = () => {
   // };
 
   const onSubmit = async (data: UserLogin) => {
-    try {
-      await mutateAsync(data);
+    mutateAsync(data).then(() => {
       reset();
-    } catch (error) {
-      console.error('Login failed:', error);
-      reset();
-    }
+    });
   };
 
   return (
     <Box
-      component="section"
       sx={{
         display: 'flex',
         flex: 1,
@@ -56,12 +51,18 @@ export const LoginView = () => {
       <Paper
         elevation={6}
         sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          minWidth: '350px',
+          minHeight: '300px',
           p: 4,
-          borderRadius: 3,
-          backgroundColor: 'background.paper',
-          minWidth: '300px'
+          px: 6,
+          gap: 4,
+          borderRadius: 3
         }}>
-        <Typography variant="h5" component="h1" align="center" sx={{ mb: 2, fontWeight: 'bold' }}>
+        <Typography variant="h5" component="h1" align="center" fontWeight={700}>
           Zaloguj się
         </Typography>
 
@@ -70,9 +71,10 @@ export const LoginView = () => {
           onSubmit={handleSubmit(onSubmit)}
           sx={{
             display: 'flex',
+            flex: 1,
             flexDirection: 'column',
             alignItems: 'center',
-            '& .MuiTextField-root': { m: 1, width: '25ch' }
+            gap: 2
           }}
           noValidate
           autoComplete="off">
@@ -81,6 +83,7 @@ export const LoginView = () => {
             {...register('email')}
             error={!!errors.email}
             helperText={errors.email?.message}
+            sx={{ width: '250px' }}
           />
 
           <TextField
@@ -89,21 +92,17 @@ export const LoginView = () => {
             {...register('password')}
             error={!!errors.password}
             helperText={errors.password?.message}
+            sx={{ width: '250px' }}
           />
 
-          <Button
-            type="submit"
-            variant="contained"
-            color="primary"
-            sx={{ mt: 2, width: '25ch' }}
-            disabled={isSubmitting}>
+          <Button type="submit" variant="contained" color="primary" disabled={isSubmitting}>
             Zaloguj się
           </Button>
-
-          <Link href="#" underline="hover" sx={{ mt: 1, fontSize: '0.875rem' }}>
-            Nie pamiętasz hasła?
-          </Link>
         </Box>
+
+        {/* <NavLink to="/" style={{ fontSize: '0.875rem' }}>
+          Nie pamiętasz hasła?
+        </NavLink> */}
       </Paper>
     </Box>
   );

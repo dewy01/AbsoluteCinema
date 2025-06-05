@@ -3,3 +3,35 @@ apis:
     root: ../absolutecinema/internal/openapi/schema/user.yaml
     x-openapi-ts:
       output: ./src/types/openapi/user.ts
+  actor:
+    root: ../absolutecinema/internal/openapi/schema/actor.yaml
+    x-openapi-ts:
+      output: ./src/types/openapi/actor.ts
+  cinema:
+    root: ../absolutecinema/internal/openapi/schema/cinema.yaml
+    x-openapi-ts:
+      output: ./src/types/openapi/cinema.ts
+  movie:
+    root: ../absolutecinema/internal/openapi/schema/movie.yaml
+    x-openapi-ts:
+      output: ./src/types/openapi/movie.ts
+  reservation:
+    root: ../absolutecinema/internal/openapi/schema/reservation.yaml
+    x-openapi-ts:
+      output: ./src/types/openapi/reservation.ts
+  reserved-seat:
+    root: ../absolutecinema/internal/openapi/schema/reserved_seat.yaml
+    x-openapi-ts:
+      output: ./src/types/openapi/reserved-seat.ts
+  room:
+    root: ../absolutecinema/internal/openapi/schema/room.yaml
+    x-openapi-ts:
+      output: ./src/types/openapi/room.ts
+  screening:
+    root: ../absolutecinema/internal/openapi/schema/screening.yaml
+    x-openapi-ts:
+      output: ./src/types/openapi/screening.ts
+  seat:
+    root: ../absolutecinema/internal/openapi/schema/seat.yaml
+    x-openapi-ts:
+      output: ./src/types/openapi/seat.ts
