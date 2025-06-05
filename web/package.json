@@ -21,6 +21,7 @@
     "@tailwindcss/vite": "^4.1.7",
     "@tanstack/react-query": "^5.79.2",
     "axios": "^1.9.0",
+    "dayjs": "^1.11.13",
     "jotai": "^2.12.5",
     "notistack": "^3.0.2",
     "react": "^19.1.0",

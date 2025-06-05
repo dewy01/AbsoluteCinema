@@ -14,7 +14,10 @@ export interface paths {
         /** Get all screenings */
         get: {
             parameters: {
-                query?: never;
+                query?: {
+                    /** @description Filter screenings by date (YYYY-MM-DD) */
+                    day?: components["parameters"]["DayFilter"];
+                };
                 header?: never;
                 path?: never;
                 cookie?: never;
@@ -188,7 +191,10 @@ export interface paths {
     };
     "/screenings/movie/{movieID}": {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Filter screenings by date (YYYY-MM-DD) */
+                day?: components["parameters"]["DayFilter"];
+            };
             header?: never;
             path: {
                 movieID: string;
@@ -198,7 +204,10 @@ export interface paths {
         /** Get screenings by movie ID */
         get: {
             parameters: {
-                query?: never;
+                query?: {
+                    /** @description Filter screenings by date (YYYY-MM-DD) */
+                    day?: components["parameters"]["DayFilter"];
+                };
                 header?: never;
                 path: {
                     movieID: string;
@@ -235,7 +244,10 @@ export interface paths {
     };
     "/screenings/room/{roomID}": {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Filter screenings by date (YYYY-MM-DD) */
+                day?: components["parameters"]["DayFilter"];
+            };
             header?: never;
             path: {
                 roomID: string;
@@ -245,7 +257,10 @@ export interface paths {
         /** Get screenings by room ID */
         get: {
             parameters: {
-                query?: never;
+                query?: {
+                    /** @description Filter screenings by date (YYYY-MM-DD) */
+                    day?: components["parameters"]["DayFilter"];
+                };
                 header?: never;
                 path: {
                     roomID: string;
@@ -280,6 +295,59 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/screenings/cinema/{cinemaID}": {
+        parameters: {
+            query?: {
+                /** @description Filter screenings by date (YYYY-MM-DD) */
+                day?: components["parameters"]["DayFilter"];
+            };
+            header?: never;
+            path: {
+                cinemaID: string;
+            };
+            cookie?: never;
+        };
+        /** Get screenings by cinema ID */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description Filter screenings by date (YYYY-MM-DD) */
+                    day?: components["parameters"]["DayFilter"];
+                };
+                header?: never;
+                path: {
+                    cinemaID: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description List of screenings */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ScreeningOutput"][];
+                    };
+                };
+                /** @description Cinema not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -295,16 +363,30 @@ export interface components {
         ScreeningOutput: {
             /** Format: uuid */
             id?: string;
-            /** Format: uuid */
-            movieID?: string;
-            /** Format: uuid */
-            roomID?: string;
             /** Format: date-time */
             startTime?: string;
+            movie?: components["schemas"]["MovieOutput"];
+            room?: components["schemas"]["RoomOutput"];
+        };
+        MovieOutput: {
+            /** Format: uuid */
+            id?: string;
+            title?: string;
+            director?: string;
+            description?: string;
+            photoPath?: string;
+        };
+        RoomOutput: {
+            /** Format: uuid */
+            id?: string;
+            name?: string;
         };
     };
     responses: never;
-    parameters: never;
+    parameters: {
+        /** @description Filter screenings by date (YYYY-MM-DD) */
+        DayFilter: string;
+    };
     requestBodies: never;
     headers: never;
     pathItems: never;
