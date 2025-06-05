@@ -7,6 +7,7 @@ import (
 	"absolutecinema/internal/database/repository"
 	"absolutecinema/internal/handlers"
 	"absolutecinema/internal/openapi/gen/actorgen"
+	"absolutecinema/internal/openapi/gen/cinemagen"
 	"absolutecinema/internal/openapi/gen/usergen"
 	"absolutecinema/internal/service"
 	"absolutecinema/pkg/log"
@@ -66,6 +67,7 @@ func New(cfg *config.AppConfig) (*App, error) {
 
 	mux.Handle("/users/", usergen.Handler(handlers.User))
 	mux.Handle("/actors/", actorgen.Handler(handlers.Actor))
+	mux.Handle("/cinemas/", cinemagen.Handler(handlers.Cinema))
 
 	const defaultTimeout = 10 * time.Second
 	httpServer := &http.Server{
@@ -87,21 +89,20 @@ func New(cfg *config.AppConfig) (*App, error) {
 }
 
 func withCORS(next http.Handler) http.Handler {
-    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-        w.Header().Set("Access-Control-Allow-Origin", "http://localhost:5173")
-        w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-        w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-        w.Header().Set("Access-Control-Allow-Credentials", "true")
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:5173")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		w.Header().Set("Access-Control-Allow-Credentials", "true")
 
-        if r.Method == http.MethodOptions {
-            w.WriteHeader(http.StatusNoContent)
-            return
-        }
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
 
-        next.ServeHTTP(w, r)
-    })
+		next.ServeHTTP(w, r)
+	})
 }
-
 
 func (app *App) Start(ctx context.Context, group *errgroup.Group) error {
 	group.Go(func() error {
