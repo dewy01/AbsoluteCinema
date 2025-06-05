@@ -1,5 +1,5 @@
 import { baseUrl } from '@/constants/constants';
-import type { components } from '@/types/openapi';
+import type { components } from '@/types/openapi/user';
 import axios from 'axios';
 
 export interface AccessToken {

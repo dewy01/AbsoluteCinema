@@ -3,3 +3,11 @@ apis:
     root: ../absolutecinema/internal/openapi/schema/user.yaml
     x-openapi-ts:
       output: ./src/types/openapi/user.ts
+  cinema:
+    root: ../absolutecinema/internal/openapi/schema/cinema.yaml
+    x-openapi-ts:
+      output: ./src/types/openapi/cinema.ts
+  actor:
+    root: ../absolutecinema/internal/openapi/schema/actor.yaml
+    x-openapi-ts:
+      output: ./src/types/openapi/actor.ts

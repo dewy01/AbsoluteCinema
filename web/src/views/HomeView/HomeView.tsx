@@ -1,8 +1,22 @@
+import { CinemaSchedule } from '@/components/CinemaSchedule/CinemaSchedule';
+import { useCinema } from '@/contexts';
+import { Box } from '@mui/material';
+
 export const HomeView = () => {
+  const { selectedCinema } = useCinema();
+
   return (
-    <div>
-      <h1>Home View</h1>
-      <p>Welcome to the home page!</p>
-    </div>
+    <Box>
+      {selectedCinema ? (
+        <>
+          <CinemaSchedule></CinemaSchedule>
+        </>
+      ) : (
+        <>
+          <h1>Brak wybranego kina</h1>
+          <p>Proszę wybierz kino, aby kontynuować.</p>
+        </>
+      )}
+    </Box>
   );
 };

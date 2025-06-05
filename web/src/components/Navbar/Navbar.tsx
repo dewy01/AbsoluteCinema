@@ -22,15 +22,19 @@ import { useNavigate } from 'react-router-dom';
 import { useCinema } from '@/contexts/CinemaContext';
 import { useUserLogout } from '@/apis/User';
 
-const cinemaList = ['Cinema City', 'Multikino', 'Helios', 'Test']; // TODO
-
 function Navbar() {
   const { isAuthenticated } = useAuth();
   const { mutateAsync } = useUserLogout();
   const navigate = useNavigate();
 
-  const { selectedCinema, isCinemaModalOpen, openCinemaModal, closeCinemaModal, selectCinema } =
-    useCinema();
+  const {
+    selectedCinema,
+    isCinemaModalOpen,
+    cinemaMap,
+    openCinemaModal,
+    closeCinemaModal,
+    selectCinema
+  } = useCinema();
 
   // const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(null);
   const [anchorElUser, setAnchorElUser] = React.useState<null | HTMLElement>(null);
@@ -102,7 +106,9 @@ function Navbar() {
           {/* Wybrany kino (desktop) */}
           <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' }, alignItems: 'center' }}>
             <Button onClick={openCinemaModal} sx={{ my: 2, color: 'white', display: 'block' }}>
-              {selectedCinema ? `Kino: ${selectedCinema}` : 'Wybierz kino'}
+              {selectedCinema
+                ? `Kino: ${cinemaMap[selectedCinema]?.name || 'Nieznane kino'}`
+                : 'Wybierz kino'}
             </Button>
           </Box>
 
@@ -182,12 +188,12 @@ function Navbar() {
           </Container>
 
           <Grid container spacing={2}>
-            {cinemaList.map((cinema, index) => (
+            {Object.entries(cinemaMap).map(([cinemaId, cinema]) => (
               <Button
-                key={index}
+                key={cinemaId}
                 variant="outlined"
                 fullWidth
-                onClick={() => selectCinema(cinema)}
+                onClick={() => selectCinema(cinemaId)}
                 sx={{
                   color: 'white',
                   borderColor: 'white',
@@ -198,7 +204,7 @@ function Navbar() {
                   },
                   textTransform: 'none'
                 }}>
-                {cinema}
+                {cinema.name || 'Bez nazwy'}
               </Button>
             ))}
           </Grid>

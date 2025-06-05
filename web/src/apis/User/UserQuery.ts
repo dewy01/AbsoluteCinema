@@ -1,6 +1,6 @@
 import { enqueueSnackbar, useSnackbar } from 'notistack';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { components } from '@/types/openapi';
+import type { components } from '@/types/openapi/user';
 import { useNavigate } from 'react-router-dom';
 import {
   deleteUserById,

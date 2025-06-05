@@ -1,8 +1,11 @@
+import { useAllCinemas } from '@/apis/Cinema';
+import type { CinemaMap } from '@/types/CinemaMap';
 import { createContext, useContext, useState } from 'react';
 
 interface CinemaContextProps {
   selectedCinema: string | null;
   isCinemaModalOpen: boolean;
+  cinemaMap: CinemaMap;
   selectCinema: (cinema: string) => void;
   resetCinema: () => void;
   openCinemaModal: () => void;
@@ -34,10 +37,23 @@ export const CinemaProvider = ({ children }: Props) => {
   const openCinemaModal = () => setCinemaModalOpen(true);
   const closeCinemaModal = () => setCinemaModalOpen(false);
 
+  const { data } = useAllCinemas();
+  const cinemaMap: CinemaMap = (data || []).reduce((acc, cinema) => {
+    if (cinema.id) {
+      acc[cinema.id] = {
+        name: cinema.name || '',
+        address: cinema.address || '',
+        roomIDs: cinema.roomIDs || []
+      };
+    }
+    return acc;
+  }, {} as CinemaMap);
+
   return (
     <cinemaContext.Provider
       value={{
         selectedCinema,
+        cinemaMap,
         isCinemaModalOpen,
         selectCinema,
         resetCinema,
