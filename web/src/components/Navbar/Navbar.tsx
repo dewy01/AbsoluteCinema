@@ -1,7 +1,7 @@
 import { useUserLogout } from '@/apis/User';
 import { selectedCinemaAtom } from '@/atoms/cinemaAtom';
+import LogoIcon from '@/components/Icons/LogoIcon';
 import { useAuth } from '@/contexts';
-import LogoIcon from '@/utils/Icons/LogoIcon';
 import MenuIcon from '@mui/icons-material/Menu';
 import {
   AppBar,

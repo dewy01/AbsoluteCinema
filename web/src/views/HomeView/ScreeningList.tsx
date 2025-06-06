@@ -1,6 +1,8 @@
 import type { components } from '@/types/openapi/screening';
-import { Box, Button, Grid, Paper, Typography } from '@mui/material';
+import { mapScreeningsByMovie } from '@/utils/mapScreenings';
+import { Box, Button, Paper, Typography } from '@mui/material';
 import dayjs from 'dayjs';
+import { useMemo } from 'react';
 import { NavLink } from 'react-router-dom';
 
 type ScreeningListProps = {
@@ -12,36 +14,54 @@ export const ScreeningList = ({ screenings }: ScreeningListProps) => {
     return <Typography>Brak dostępnych seansów dla filmów w tym kinie.</Typography>;
   }
 
+  const grouped = useMemo(() => mapScreeningsByMovie(screenings), [screenings]);
+
   return (
-    <Grid container spacing={3}>
-      {screenings.map((screening) => (
-        <Paper key={screening.id} elevation={3} sx={{ p: 2, height: '100%' }}>
-          <Typography variant="h6" gutterBottom noWrap>
-            {screening.movie?.title}
-          </Typography>
-          <Typography variant="subtitle2" color="textSecondary" noWrap>
-            {screening.room?.name} o godzinie {dayjs(screening.startTime).format('HH:mm')}
-          </Typography>
+    <Box display="flex" flexDirection="column" gap={2}>
+      {grouped.map(({ movie, screenings }) => (
+        <Paper
+          key={movie?.id}
+          elevation={3}
+          sx={{
+            display: 'flex',
+            alignItems: 'flex-start',
+            p: 2,
+            gap: 2
+          }}>
           <Box
             component="img"
-            src={screening.movie?.photoPath || '/placeholder-movie.png'}
-            alt={screening.movie?.title}
+            src={movie?.photoPath || '/placeholder-movie.png'}
+            alt={movie?.title}
             sx={{
-              width: '100%',
-              height: 180,
+              width: 120,
+              height: 160,
               objectFit: 'cover',
-              mt: 1,
               borderRadius: 1,
-              backgroundColor: '#eee'
+              backgroundColor: '#eee',
+              flexShrink: 0
             }}
           />
-          <NavLink to={`/movie/${screening.movie?.id}`}>
-            <Button variant="contained" fullWidth sx={{ mt: 2 }}>
-              Zobacz szczegóły
-            </Button>
-          </NavLink>
+
+          <Box sx={{ flex: 1 }}>
+            <Typography variant="h6" gutterBottom>
+              {movie?.title}
+            </Typography>
+
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+              {screenings.map((screening) => (
+                <NavLink
+                  key={screening.id}
+                  to={`/screening/${screening.id}`}
+                  style={{ textDecoration: 'none' }}>
+                  <Button variant="outlined" size="small">
+                    {dayjs(screening.startTime).format('HH:mm')}
+                  </Button>
+                </NavLink>
+              ))}
+            </Box>
+          </Box>
         </Paper>
       ))}
-    </Grid>
+    </Box>
   );
 };

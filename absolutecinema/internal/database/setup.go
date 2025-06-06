@@ -3,9 +3,12 @@ package database
 import (
 	"absolutecinema/internal/auth"
 	"absolutecinema/internal/database/models"
+	"fmt"
 	"log"
+	"strings"
 	"time"
 
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
@@ -56,122 +59,118 @@ func (db *Database) isEmpty() bool {
 }
 
 func (db *Database) seed() {
-	db.Exec("DELETE FROM reserved_seats")
-	db.Exec("DELETE FROM reservations")
-	db.Exec("DELETE FROM screenings")
-	db.Exec("DELETE FROM seats")
-	db.Exec("DELETE FROM rooms")
-	db.Exec("DELETE FROM cinemas")
-	db.Exec("DELETE FROM movie_actors")
-	db.Exec("DELETE FROM actors")
-	db.Exec("DELETE FROM movies")
-	db.Exec("DELETE FROM users")
-
-	passwordHash, err := bcrypt.GenerateFromPassword([]byte("user"), bcrypt.DefaultCost)
-	if err != nil {
-		log.Fatalf("Failed to hash password: %v", err)
+	tables := []string{
+		"reserved_seats", "reservations", "screenings", "seats", "rooms", "cinemas",
+		"movie_actors", "actors", "movies", "users",
+	}
+	for _, table := range tables {
+		db.Exec(fmt.Sprintf("DELETE FROM %s", table))
 	}
 
-	user := models.User{
-		Name:     "User",
-		Email:    "user@example.com",
-		Role:     auth.Role("user"),
-		Password: string(passwordHash),
-	}
-	if err := db.Create(&user).Error; err != nil {
-		log.Fatalf("Failed to create user: %v", err)
-	}
-
-	adminPassHash, _ := bcrypt.GenerateFromPassword([]byte("admin"), bcrypt.DefaultCost)
-	admin := models.User{
-		Name:     "Admin",
-		Email:    "admin@example.com",
-		Role:     auth.Role("admin"),
-		Password: string(adminPassHash),
-	}
-	if err := db.Create(&admin).Error; err != nil {
-		log.Fatalf("Failed to create admin user: %v", err)
+	passwords := map[string]string{"user": "user", "admin": "admin", "john": "123456", "jane": "password"}
+	users := []models.User{}
+	for name, pass := range passwords {
+		hash, _ := bcrypt.GenerateFromPassword([]byte(pass), bcrypt.DefaultCost)
+		role := auth.Role("user")
+		if name == "admin" {
+			role = auth.Role("admin")
+		}
+		user := models.User{Name: strings.Title(name), Email: fmt.Sprintf("%s@example.com", name), Role: role, Password: string(hash)}
+		if err := db.Create(&user).Error; err != nil {
+			log.Fatalf("Failed to create user %s: %v", name, err)
+		}
+		users = append(users, user)
 	}
 
-	actor1 := models.Actor{Name: "Robert Downey Jr."}
-	actor2 := models.Actor{Name: "Scarlett Johansson"}
-	if err := db.Create(&actor1).Error; err != nil {
-		log.Fatalf("Failed to create actor1: %v", err)
-	}
-	if err := db.Create(&actor2).Error; err != nil {
-		log.Fatalf("Failed to create actor2: %v", err)
-	}
-
-	movie1 := models.Movie{
-		Title:       "Avengers: Endgame",
-		Director:    "Anthony and Joe Russo",
-		Description: "Superhero film",
-		PhotoPath:   "/images/avengers.jpg",
-		Actors:      []models.Actor{actor1, actor2},
-	}
-	if err := db.Create(&movie1).Error; err != nil {
-		log.Fatalf("Failed to create movie: %v", err)
+	actorNames := []string{"Robert Downey Jr.", "Scarlett Johansson", "Chris Evans", "Tom Holland", "Gal Gadot", "Chris Hemsworth"}
+	actors := []models.Actor{}
+	for _, name := range actorNames {
+		actor := models.Actor{Name: name}
+		if err := db.Create(&actor).Error; err != nil {
+			log.Fatalf("Failed to create actor %s: %v", name, err)
+		}
+		actors = append(actors, actor)
 	}
 
-	cinema := models.Cinema{
-		Name:    "Downtown Cinema",
-		Address: "123 Main St",
-	}
-	if err := db.Create(&cinema).Error; err != nil {
-		log.Fatalf("Failed to create cinema: %v", err)
-	}
-
-	room := models.Room{
-		Name:     "Room 1",
-		CinemaID: cinema.ID,
-	}
-	if err := db.Create(&room).Error; err != nil {
-		log.Fatalf("Failed to create room: %v", err)
+	movieData := []struct {
+		Title       string
+		Director    string
+		Description string
+		PhotoPath   string
+		ActorIdx    []int
+	}{
+		{"Avengers: Endgame", "Russo Brothers", "Superhero film", "/movies/avengers.jpg", []int{0, 1, 2}},
+		{"Wonder Woman", "Patty Jenkins", "Amazonian warrior", "/movies/wonder.jpg", []int{4}},
+		{"Spider-Man: Homecoming", "Jon Watts", "Teen superhero", "/movies/spiderman.jpg", []int{3}},
+		{"Thor: Ragnarok", "Taika Waititi", "Thor in space", "/movies/thor.jpg", []int{5}},
+		{"Black Widow", "Cate Shortland", "Spy action film", "/movies/blackwidow.jpg", []int{1}},
 	}
 
-	seats := []models.Seat{
-		{Row: "A", Number: 1, RoomID: room.ID},
-		{Row: "A", Number: 2, RoomID: room.ID},
-		{Row: "B", Number: 1, RoomID: room.ID},
-		{Row: "B", Number: 2, RoomID: room.ID},
+	movies := []models.Movie{}
+	for _, m := range movieData {
+		cast := []models.Actor{}
+		for _, idx := range m.ActorIdx {
+			cast = append(cast, actors[idx])
+		}
+		movie := models.Movie{Title: m.Title, Director: m.Director, Description: m.Description, PhotoPath: m.PhotoPath, Actors: cast}
+		if err := db.Create(&movie).Error; err != nil {
+			log.Fatalf("Failed to create movie %s: %v", m.Title, err)
+		}
+		movies = append(movies, movie)
 	}
-	for _, seat := range seats {
-		if err := db.Create(&seat).Error; err != nil {
-			log.Fatalf("Failed to create seat: %v", err)
+
+	for c := 1; c <= 3; c++ {
+		cinema := models.Cinema{Name: fmt.Sprintf("Cinema %d", c), Address: fmt.Sprintf("%d Main Street", 100+c)}
+		if err := db.Create(&cinema).Error; err != nil {
+			log.Fatalf("Failed to create cinema %d: %v", c, err)
+		}
+
+		for r := 1; r <= 2; r++ {
+			room := models.Room{Name: fmt.Sprintf("Room %d", r), CinemaID: cinema.ID}
+			if err := db.Create(&room).Error; err != nil {
+				log.Fatalf("Failed to create room %d in cinema %d: %v", r, c, err)
+			}
+
+			for row := 'A'; row <= 'C'; row++ {
+				for seatNum := 1; seatNum <= 4; seatNum++ {
+					seat := models.Seat{Row: string(row), Number: seatNum, RoomID: room.ID}
+					if err := db.Create(&seat).Error; err != nil {
+						log.Fatalf("Failed to create seat %c%d in room %d: %v", row, seatNum, r, err)
+					}
+				}
+			}
+
+			for i := 0; i < 2; i++ {
+				movie := movies[(c+r+i)%len(movies)]
+				start := time.Now().Add(time.Duration((c+r+i)*3) * time.Hour)
+				screening := models.Screening{MovieID: movie.ID, RoomID: room.ID, StartTime: start}
+				if err := db.Create(&screening).Error; err != nil {
+					log.Fatalf("Failed to create screening: %v", err)
+				}
+
+				if (c+r+i)%2 == 0 {
+					res := models.Reservation{
+						ScreeningID: screening.ID,
+						UserID:      &users[0].ID,
+						PDFPath:     fmt.Sprintf("/reservations/%s.pdf", uuid.New().String()),
+						GuestName:   "Sample Guest",
+						GuestEmail:  "guest@example.com",
+					}
+					if err := db.Create(&res).Error; err != nil {
+						log.Fatalf("Failed to create reservation: %v", err)
+					}
+
+					var seat models.Seat
+					if err := db.Where("room_id = ?", room.ID).First(&seat).Error; err == nil {
+						resSeat := models.ReservedSeat{ReservationID: res.ID, SeatID: seat.ID}
+						if err := db.Create(&resSeat).Error; err != nil {
+							log.Fatalf("Failed to create reserved seat: %v", err)
+						}
+					}
+				}
+			}
 		}
 	}
 
-	var seatA1 models.Seat
-	if err := db.Where("row = ? AND number = ? AND room_id = ?", "A", 1, room.ID).First(&seatA1).Error; err != nil {
-		log.Fatalf("Failed to find seat A1: %v", err)
-	}
-
-	screening := models.Screening{
-		MovieID:   movie1.ID,
-		RoomID:    room.ID,
-		StartTime: time.Now().Add(24 * time.Hour),
-	}
-	if err := db.Create(&screening).Error; err != nil {
-		log.Fatalf("Failed to create screening: %v", err)
-	}
-
-	reservation := models.Reservation{
-		ScreeningID: screening.ID,
-		GuestName:   "Guest User",
-		GuestEmail:  "guest@example.com",
-		PDFPath:     "/reservations/guest1.pdf",
-	}
-	if err := db.Create(&reservation).Error; err != nil {
-		log.Fatalf("Failed to create reservation: %v", err)
-	}
-
-	reservedSeat := models.ReservedSeat{
-		ReservationID: reservation.ID,
-		SeatID:        seatA1.ID,
-	}
-	if err := db.Create(&reservedSeat).Error; err != nil {
-		log.Fatalf("Failed to create reserved seat: %v", err)
-	}
-
-	log.Println("Database seeding completed.")
+	log.Println("Expanded database seeding completed.")
 }

@@ -3,21 +3,30 @@ import { selectedCinemaAtom } from '@/atoms/cinemaAtom';
 import { Box, Button, CircularProgress, Typography } from '@mui/material';
 import dayjs from 'dayjs';
 import { useAtom } from 'jotai';
-import { useState } from 'react';
+import { useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { ScreeningList } from './ScreeningList';
 
 export const HomeView = () => {
   const [selectedCinema] = useAtom(selectedCinemaAtom);
-  const [selectedDate, setSelectedDate] = useState(dayjs().format('YYYY-MM-DD'));
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const today = dayjs().format('YYYY-MM-DD');
+  const selectedDate = searchParams.get('date') || today;
+
+  const dateOptions = useMemo(
+    () => Array.from({ length: 7 }).map((_, i) => dayjs().add(i, 'day').format('YYYY-MM-DD')),
+    []
+  );
 
   const { data, isLoading, isError } = useScreeningsByCinema(
     selectedCinema?.id || '',
     selectedDate
   );
 
-  const dateOptions = Array.from({ length: 7 }).map((_, i) =>
-    dayjs().add(i, 'day').format('YYYY-MM-DD')
-  );
+  const handleDateChange = (date: string) => {
+    setSearchParams({ date });
+  };
 
   if (!selectedCinema) {
     return (
@@ -63,8 +72,10 @@ export const HomeView = () => {
           <Button
             key={date}
             variant={date === selectedDate ? 'contained' : 'outlined'}
-            onClick={() => setSelectedDate(date)}>
-            {dayjs(date).format('ddd, DD MMM')}
+            onClick={() => handleDateChange(date)}
+            sx={{ display: 'flex', flexDirection: 'column', gap: 1, p: 1, width: '150px' }}>
+            <Typography>{dayjs(date).format('dddd')}</Typography>
+            <Typography> {dayjs(date).format('DD MMM')}</Typography>
           </Button>
         ))}
       </Box>

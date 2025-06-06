@@ -32,6 +32,18 @@ const Movie = lazy(() =>
   }))
 );
 
+const Screening = lazy(() =>
+  import('@/views/ScreeningView').then((module) => ({
+    default: module.ScreeningView
+  }))
+);
+
+const Reservation = lazy(() =>
+  import('@/views/ReservationView').then((module) => ({
+    default: module.ReservationView
+  }))
+);
+
 export const Router = () => {
   return (
     <Suspense fallback={<Progress />}>
@@ -41,6 +53,8 @@ export const Router = () => {
           <Route path="login" element={<Login />} />
           <Route path="register" element={<Register />} />
           <Route path="movie/:id" element={<Movie />} />
+          <Route path="screening/:id" element={<Screening />} />
+          <Route path="reservation/:id" element={<Reservation />} />
         </Route>
       </Routes>
     </Suspense>

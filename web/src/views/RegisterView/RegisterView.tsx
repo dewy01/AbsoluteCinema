@@ -37,7 +37,8 @@ export const RegisterView = () => {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        width: '100%'
+        width: '100%',
+        height: '100%'
       }}>
       <Paper
         elevation={6}
