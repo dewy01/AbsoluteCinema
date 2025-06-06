@@ -6,26 +6,26 @@ import (
 )
 
 type CreateMovieInput struct {
-	Title       string
-	Director    string
-	Description string
-	Photo       types.File
-	ActorIDs    []uuid.UUID
+	Title       string      `json:"title"`
+	Director    string      `json:"director"`
+	Description string      `json:"description"`
+	Photo       types.File  `json:"photo"`
+	ActorIDs    []uuid.UUID `json:"actorIDs"`
 }
 
 type UpdateMovieInput struct {
-	Title       string
-	Director    string
-	Description string
-	Photo       types.File
-	ActorIDs    []uuid.UUID
+	Title       string      `json:"title"`
+	Director    string      `json:"director"`
+	Description string      `json:"description"`
+	Photo       types.File  `json:"photo"`
+	ActorIDs    []uuid.UUID `json:"actorIDs"`
 }
 
 type MovieOutput struct {
-	ID          uuid.UUID
-	Title       string
-	Director    string
-	Description string
-	PhotoPath   string
-	ActorIDs    []uuid.UUID
+	ID          uuid.UUID   `json:"id"`
+	Title       string      `json:"title"`
+	Director    string      `json:"director"`
+	Description string      `json:"description"`
+	PhotoPath   string      `json:"photoPath"`
+	ActorIDs    []uuid.UUID `json:"actorIDs"`
 }

@@ -7,27 +7,27 @@ import (
 )
 
 type CreateUserInput struct {
-	Name            string
-	Email           string
-	Password        string
-	ConfirmPassword string
+	Name            string `json:"name"`
+	Email           string `json:"email"`
+	Password        string `json:"password"`
+	ConfirmPassword string `json:"confirmPassword"`
 }
 
 type UpdateUserInput struct {
-	Name            string
-	Email           string
-	Password        string
-	ConfirmPassword string
+	Name            string `json:"name"`
+	Email           string `json:"email"`
+	Password        string `json:"password"`
+	ConfirmPassword string `json:"confirmPassword"`
 }
 
 type LoginInput struct {
-	Email    string
-	Password string
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }
 
 type UserOutput struct {
-	ID    uuid.UUID
-	Name  string
-	Email string
-	Role  auth.Role
+	ID    uuid.UUID `json:"id"`
+	Name  string    `json:"name"`
+	Email string    `json:"email"`
+	Role  auth.Role `json:"role"`
 }

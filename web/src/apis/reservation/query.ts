@@ -1,7 +1,10 @@
+import { baseUrl } from '@/constants/constants';
 import type { components } from '@/types/openapi/reservation';
+import { downloadFileFromPath } from '@/utils/downloadFile';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { AxiosError } from 'axios';
 import { useSnackbar } from 'notistack';
+import { queryClient } from '../api';
 import {
   deleteReservationById,
   getReservationById,
@@ -12,13 +15,29 @@ import {
 
 export const useCreateReservation = () => {
   const { enqueueSnackbar } = useSnackbar();
+
   return useMutation({
     mutationKey: ['createReservation'],
     mutationFn: (data: components['schemas']['CreateReservationInput']) =>
       postCreateReservation(data),
-    onSuccess: () => {
+
+    onSuccess: async (data) => {
+      if (data.pdfPath) {
+        const url = `${baseUrl}/resources/${data.pdfPath}`;
+        try {
+          await downloadFileFromPath(url, `rezerwacja-${data.id}.pdf`);
+        } catch {
+          enqueueSnackbar('Nie udało się pobrać PDF-a.', { variant: 'error' });
+        }
+      }
+
+      queryClient.invalidateQueries({
+        queryKey: ['seatsByScreening']
+      });
+
       enqueueSnackbar('Rezerwacja została utworzona!');
     },
+
     onError: (err) => {
       if (err instanceof AxiosError && err.response?.status === 400) {
         enqueueSnackbar('Nieprawidłowe dane rezerwacji.', { variant: 'error' });

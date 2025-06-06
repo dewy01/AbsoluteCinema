@@ -8,29 +8,29 @@ import (
 )
 
 type MovieOutput struct {
-	ID          uuid.UUID
-	Title       string
-	Director    string
-	Description string
-	PhotoPath   string
+	ID          uuid.UUID `json:"id"`
+	Title       string    `json:"title"`
+	Director    string    `json:"director"`
+	Description string    `json:"description"`
+	PhotoPath   string    `json:"photoPath"`
 }
 
 type RoomOutput struct {
-	ID   uuid.UUID
-	Name string
+	ID   uuid.UUID `json:"id"`
+	Name string    `json:"name"`
 }
 
 type CreateScreeningInput struct {
-	MovieID   uuid.UUID
-	RoomID    uuid.UUID
-	StartTime time.Time
+	MovieID   uuid.UUID `json:"movieID"`
+	RoomID    uuid.UUID `json:"roomID"`
+	StartTime time.Time `json:"startTime"`
 }
 
 type ScreeningOutput struct {
-	ID        uuid.UUID
-	StartTime time.Time
-	Movie     MovieOutput
-	Room      RoomOutput
+	ID        uuid.UUID   `json:"id"`
+	StartTime time.Time   `json:"startTime"`
+	Movie     MovieOutput `json:"movie"`
+	Room      RoomOutput  `json:"room"`
 }
 
 func toOutput(s *screening.Screening) *ScreeningOutput {

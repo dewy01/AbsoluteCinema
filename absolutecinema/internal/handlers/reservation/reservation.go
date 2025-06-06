@@ -33,20 +33,9 @@ func (h *Handler) PostReservations(w http.ResponseWriter, r *http.Request) {
 	serviceInput := reservation_service.CreateReservationInput{
 		ScreeningID:   input.ScreeningID,
 		UserID:        input.UserID,
-		GuestName:     "",
-		GuestEmail:    "",
+		GuestName:     *input.GuestName,
+		GuestEmail:    string(*input.GuestEmail),
 		ReservedSeats: make([]reservation_service.ReservedSeat, len(input.ReservedSeats)),
-	}
-
-	if input.GuestName != nil {
-		serviceInput.GuestName = *input.GuestName
-	}
-	if input.GuestEmail != nil {
-		var email string
-		err := json.Unmarshal([]byte(*input.GuestEmail), &email)
-		if err != nil {
-		}
-		serviceInput.GuestEmail = email
 	}
 
 	for i, seat := range input.ReservedSeats {

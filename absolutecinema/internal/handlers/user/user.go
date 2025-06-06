@@ -107,8 +107,15 @@ func (h *UserHandler) GetUsersMe(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	resp := usergen.UserOutput{
+		Id:    &user.ID,
+		Name:  &user.Name,
+		Email: &user.Email,
+		Role:  (*string)(&user.Role),
+	}
+
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(user)
+	json.NewEncoder(w).Encode(resp)
 }
 
 // GET /users/{id}

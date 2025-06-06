@@ -67,6 +67,29 @@ func (h *SeatHandler) GetSeatsId(w http.ResponseWriter, r *http.Request, id open
 	json.NewEncoder(w).Encode(resp)
 }
 
+// GET /seats/screening/{screeningID}
+func (h *SeatHandler) GetSeatsScreeningScreeningID(w http.ResponseWriter, r *http.Request, screeningID openapi_types.UUID) {
+	seats, err := h.Service.GetByScreeningID(uuid.UUID(screeningID))
+	if err != nil {
+		http.Error(w, "Failed to get seats for screening", http.StatusInternalServerError)
+		return
+	}
+
+	var resp []seatgen.SeatWithReservationStatusOutput
+	for _, s := range seats {
+		resp = append(resp, seatgen.SeatWithReservationStatusOutput{
+			Id:         &s.ID,
+			Number:     &s.Number,
+			Row:        &s.Row,
+			RoomID:     &s.RoomID,
+			IsReserved: &s.IsReserved,
+		})
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(resp)
+}
+
 // PUT /seats/{id}
 func (h *SeatHandler) PutSeatsId(w http.ResponseWriter, r *http.Request, id openapi_types.UUID) {
 	var input seatgen.UpdateSeatInput

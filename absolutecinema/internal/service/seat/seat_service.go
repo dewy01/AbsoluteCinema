@@ -11,6 +11,7 @@ type Service interface {
 	Create(input CreateSeatInput) (*SeatOutput, error)
 	GetByID(id uuid.UUID) (*SeatOutput, error)
 	GetByRoomID(roomID uuid.UUID) ([]SeatOutput, error)
+	GetByScreeningID(screeningID uuid.UUID) ([]SeatWithReservationStatusOutput, error)
 	Update(input UpdateSeatInput) error
 	Delete(id uuid.UUID) error
 }
@@ -67,6 +68,29 @@ func (s *service) GetByRoomID(roomID uuid.UUID) ([]SeatOutput, error) {
 	output := make([]SeatOutput, len(seats))
 	for i, s := range seats {
 		output[i] = *toOutput(&s)
+	}
+	return output, nil
+}
+
+func (s *service) GetByScreeningID(screeningID uuid.UUID) ([]SeatWithReservationStatusOutput, error) {
+	if screeningID == uuid.Nil {
+		return nil, errors.New("invalid screening ID")
+	}
+
+	seats, err := s.repo.GetByScreeningID(screeningID)
+	if err != nil {
+		return nil, err
+	}
+
+	output := make([]SeatWithReservationStatusOutput, len(seats))
+	for i, seat := range seats {
+		output[i] = SeatWithReservationStatusOutput{
+			ID:         seat.ID,
+			Row:        seat.Row,
+			Number:     seat.Number,
+			RoomID:     seat.RoomID,
+			IsReserved: seat.IsReserved,
+		}
 	}
 	return output, nil
 }

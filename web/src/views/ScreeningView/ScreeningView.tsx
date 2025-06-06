@@ -37,7 +37,7 @@ export const ScreeningView = () => {
 
       <Box
         component="img"
-        src={data.movie?.photoPath || '/placeholder-movie.png'}
+        src={data.movie?.photoPath}
         alt={data.movie?.title}
         sx={{
           width: '100%',

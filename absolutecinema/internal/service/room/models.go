@@ -7,33 +7,33 @@ import (
 )
 
 type CreateRoomInput struct {
-	Name     string
-	CinemaID uuid.UUID
-	Seats    []SeatInput
+	Name     string      `json:"name"`
+	CinemaID uuid.UUID   `json:"cinemaID"`
+	Seats    []SeatInput `json:"seats"`
 }
 
 type UpdateRoomInput struct {
-	ID       uuid.UUID
-	Name     string
-	CinemaID uuid.UUID
+	ID       uuid.UUID `json:"id"`
+	Name     string    `json:"name"`
+	CinemaID uuid.UUID `json:"cinemaID"`
 }
 
 type RoomOutput struct {
-	ID       uuid.UUID
-	Name     string
-	CinemaID uuid.UUID
-	Seats    []SeatOutput
+	ID       uuid.UUID    `json:"id"`
+	Name     string       `json:"name"`
+	CinemaID uuid.UUID    `json:"cinemaID"`
+	Seats    []SeatOutput `json:"seats"`
 }
 
 type SeatInput struct {
-	Row    string
-	Number int
+	Row    string `json:"row"`
+	Number int    `json:"number"`
 }
 
 type SeatOutput struct {
-	ID     uuid.UUID
-	Row    string
-	Number int
+	ID     uuid.UUID `json:"id"`
+	Row    string    `json:"row"`
+	Number int       `json:"number"`
 }
 
 func toRoomOutput(r *room.Room) *RoomOutput {

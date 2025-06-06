@@ -95,6 +95,31 @@ paths:
         "404":
           description: Room not found
 
+  /seats/screening/{screeningID}:
+    parameters:
+      - name: screeningID
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+
+    get:
+      summary: Get all seats for a screening with reservation status
+      responses:
+        "200":
+          description: List of seats with reservation info
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SeatWithReservationStatusOutput"
+        "400":
+          description: Invalid screening ID
+        "404":
+          description: Screening not found
+
 components:
   schemas:
     CreateSeatInput:
@@ -144,3 +169,20 @@ components:
           type: string
         number:
           type: integer
+
+    SeatWithReservationStatusOutput:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        roomID:
+          type: string
+          format: uuid
+        row:
+          type: string
+        number:
+          type: integer
+        isReserved:
+          type: boolean
+          description: Indicates whether the seat is already reserved for the screening

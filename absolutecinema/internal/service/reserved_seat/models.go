@@ -3,12 +3,12 @@ package reserved_seat_service
 import "github.com/google/uuid"
 
 type CreateReservedSeatInput struct {
-	ReservationID uuid.UUID
-	SeatID        uuid.UUID
+	ReservationID uuid.UUID `json:"reservationID"`
+	SeatID        uuid.UUID `json:"seatID"`
 }
 
 type ReservedSeatOutput struct {
-	ID            uuid.UUID
-	ReservationID uuid.UUID
-	SeatID        uuid.UUID
+	ID            uuid.UUID `json:"id"`
+	ReservationID uuid.UUID `json:"reservationID"`
+	SeatID        uuid.UUID `json:"seatID"`
 }

@@ -31,6 +31,17 @@ type SeatOutput struct {
 	Row    *string             `json:"row,omitempty"`
 }
 
+// SeatWithReservationStatusOutput defines model for SeatWithReservationStatusOutput.
+type SeatWithReservationStatusOutput struct {
+	Id *openapi_types.UUID `json:"id,omitempty"`
+
+	// IsReserved Indicates whether the seat is already reserved for the screening
+	IsReserved *bool               `json:"isReserved,omitempty"`
+	Number     *int                `json:"number,omitempty"`
+	RoomID     *openapi_types.UUID `json:"roomID,omitempty"`
+	Row        *string             `json:"row,omitempty"`
+}
+
 // UpdateSeatInput defines model for UpdateSeatInput.
 type UpdateSeatInput struct {
 	Id     openapi_types.UUID `json:"id"`
@@ -52,6 +63,9 @@ type ServerInterface interface {
 	// Get seats by Room ID
 	// (GET /seats/room/{roomID})
 	GetSeatsRoomRoomID(w http.ResponseWriter, r *http.Request, roomID openapi_types.UUID)
+	// Get all seats for a screening with reservation status
+	// (GET /seats/screening/{screeningID})
+	GetSeatsScreeningScreeningID(w http.ResponseWriter, r *http.Request, screeningID openapi_types.UUID)
 	// Delete a seat by ID
 	// (DELETE /seats/{id})
 	DeleteSeatsId(w http.ResponseWriter, r *http.Request, id openapi_types.UUID)
@@ -102,6 +116,31 @@ func (siw *ServerInterfaceWrapper) GetSeatsRoomRoomID(w http.ResponseWriter, r *
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetSeatsRoomRoomID(w, r, roomID)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetSeatsScreeningScreeningID operation middleware
+func (siw *ServerInterfaceWrapper) GetSeatsScreeningScreeningID(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "screeningID" -------------
+	var screeningID openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "screeningID", r.PathValue("screeningID"), &screeningID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "screeningID", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetSeatsScreeningScreeningID(w, r, screeningID)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -308,6 +347,7 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 
 	m.HandleFunc("POST "+options.BaseURL+"/seats/", wrapper.PostSeats)
 	m.HandleFunc("GET "+options.BaseURL+"/seats/room/{roomID}", wrapper.GetSeatsRoomRoomID)
+	m.HandleFunc("GET "+options.BaseURL+"/seats/screening/{screeningID}", wrapper.GetSeatsScreeningScreeningID)
 	m.HandleFunc("DELETE "+options.BaseURL+"/seats/{id}", wrapper.DeleteSeatsId)
 	m.HandleFunc("GET "+options.BaseURL+"/seats/{id}", wrapper.GetSeatsId)
 	m.HandleFunc("PUT "+options.BaseURL+"/seats/{id}", wrapper.PutSeatsId)

@@ -224,6 +224,60 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/seats/screening/{screeningID}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                screeningID: string;
+            };
+            cookie?: never;
+        };
+        /** Get all seats for a screening with reservation status */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    screeningID: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description List of seats with reservation info */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SeatWithReservationStatusOutput"][];
+                    };
+                };
+                /** @description Invalid screening ID */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Screening not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -249,6 +303,16 @@ export interface components {
             roomID?: string;
             row?: string;
             number?: number;
+        };
+        SeatWithReservationStatusOutput: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: uuid */
+            roomID?: string;
+            row?: string;
+            number?: number;
+            /** @description Indicates whether the seat is already reserved for the screening */
+            isReserved?: boolean;
         };
     };
     responses: never;

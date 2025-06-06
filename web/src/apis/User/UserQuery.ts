@@ -1,7 +1,10 @@
-import { enqueueSnackbar, useSnackbar } from 'notistack';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useAuth } from '@/contexts/AuthContext';
 import type { components } from '@/types/openapi';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { AxiosError } from 'axios';
+import { enqueueSnackbar, useSnackbar } from 'notistack';
 import { useNavigate } from 'react-router-dom';
+import { queryClient } from '../api';
 import {
   deleteUserById,
   getCurrentUser,
@@ -11,8 +14,6 @@ import {
   postUserRegister,
   putUserById
 } from './UserApi';
-import { AxiosError } from 'axios';
-import { useAuth } from '@/contexts/AuthContext';
 
 export const callUserRegister = () => {
   const { enqueueSnackbar } = useSnackbar();
@@ -44,8 +45,10 @@ export const useUserLogin = () => {
   return useMutation({
     mutationKey: ['login'],
     mutationFn: postUserLogin,
-    onSuccess: async (data) => {
-      queryClient.setQueryData(['me'], data);
+    onSuccess: async () => {
+      queryClient.invalidateQueries({
+        queryKey:['me']
+      });
 
       enqueueSnackbar({ message: 'Zalogowano pomyślnie!' });
       navigate('/', { replace: true });
@@ -70,6 +73,9 @@ export const useUserLogout = () => {
       logout();
       navigate('/', { replace: true });
       enqueueSnackbar({ message: 'Wylogowano pomyślnie!' });
+      queryClient.invalidateQueries({
+        queryKey:['me']
+      });
     },
     onError: () => {
       logout();

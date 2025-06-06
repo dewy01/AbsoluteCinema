@@ -13,6 +13,11 @@ type Seat struct {
 	RoomID uuid.UUID
 }
 
+type SeatWithReservationStatus struct {
+	Seat
+	IsReserved bool
+}
+
 func ToDBSeat(s *Seat) *models.Seat {
 	return &models.Seat{
 		ID:     s.ID,

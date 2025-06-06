@@ -30,7 +30,7 @@ export const ScreeningList = ({ screenings }: ScreeningListProps) => {
           }}>
           <Box
             component="img"
-            src={movie?.photoPath || '/placeholder-movie.png'}
+            src={movie?.photoPath}
             alt={movie?.title}
             sx={{
               width: 120,

@@ -7,22 +7,30 @@ import (
 )
 
 type CreateSeatInput struct {
-	Row    string
-	Number int
-	RoomID uuid.UUID
+	Row    string    `json:"row"`
+	Number int       `json:"number"`
+	RoomID uuid.UUID `json:"roomID"`
 }
 
 type UpdateSeatInput struct {
-	ID     uuid.UUID
-	Row    string
-	Number int
+	ID     uuid.UUID `json:"id"`
+	Row    string    `json:"row"`
+	Number int       `json:"number"`
 }
 
 type SeatOutput struct {
-	ID     uuid.UUID
-	Row    string
-	Number int
-	RoomID uuid.UUID
+	ID     uuid.UUID `json:"id"`
+	Row    string    `json:"row"`
+	Number int       `json:"number"`
+	RoomID uuid.UUID `json:"roomID"`
+}
+
+type SeatWithReservationStatusOutput struct {
+	ID         uuid.UUID `json:"id"`
+	Row        string    `json:"row"`
+	Number     int       `json:"number"`
+	RoomID     uuid.UUID `json:"roomID"`
+	IsReserved bool      `json:"isReserved"`
 }
 
 func toOutput(s *seat.Seat) *SeatOutput {

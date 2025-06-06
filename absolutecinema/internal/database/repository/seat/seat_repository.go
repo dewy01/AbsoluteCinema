@@ -11,6 +11,7 @@ type Repository interface {
 	Create(seat *Seat) error
 	GetByID(id uuid.UUID) (*Seat, error)
 	GetByRoomID(roomID uuid.UUID) ([]Seat, error)
+	GetByScreeningID(screeningID uuid.UUID) ([]SeatWithReservationStatus, error)
 	Update(seat *Seat) error
 	Delete(id uuid.UUID) error
 }
@@ -50,6 +51,42 @@ func (r *repository) GetByRoomID(roomID uuid.UUID) ([]Seat, error) {
 		seats[i] = *ToDomainSeat(&s)
 	}
 	return seats, nil
+}
+
+func (r *repository) GetByScreeningID(screeningID uuid.UUID) ([]SeatWithReservationStatus, error) {
+	var screening models.Screening
+	if err := r.db.First(&screening, "id = ?", screeningID).Error; err != nil {
+		return nil, err
+	}
+
+	var dbSeats []models.Seat
+	if err := r.db.Where("room_id = ?", screening.RoomID).Find(&dbSeats).Error; err != nil {
+		return nil, err
+	}
+
+	var reservedSeatIDs []uuid.UUID
+	if err := r.db.Model(&models.ReservedSeat{}).
+		Select("reserved_seats.seat_id").
+		Joins("JOIN reservations ON reserved_seats.reservation_id = reservations.id").
+		Where("reservations.screening_id = ?", screeningID).
+		Pluck("seat_id", &reservedSeatIDs).Error; err != nil {
+		return nil, err
+	}
+
+	reservedMap := make(map[uuid.UUID]bool)
+	for _, id := range reservedSeatIDs {
+		reservedMap[id] = true
+	}
+
+	result := make([]SeatWithReservationStatus, len(dbSeats))
+	for i, s := range dbSeats {
+		result[i] = SeatWithReservationStatus{
+			Seat:       *ToDomainSeat(&s),
+			IsReserved: reservedMap[s.ID],
+		}
+	}
+
+	return result, nil
 }
 
 func (r *repository) Update(seat *Seat) error {

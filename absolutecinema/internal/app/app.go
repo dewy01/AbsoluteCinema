@@ -13,6 +13,7 @@ import (
 	"absolutecinema/internal/openapi/gen/reservationgen"
 	"absolutecinema/internal/openapi/gen/roomgen"
 	"absolutecinema/internal/openapi/gen/screeninggen"
+	"absolutecinema/internal/openapi/gen/seatgen"
 	"absolutecinema/internal/openapi/gen/usergen"
 	"absolutecinema/internal/service"
 	"absolutecinema/pkg/fsystem"
@@ -83,7 +84,7 @@ func New(cfg *config.AppConfig) (*App, error) {
 	mux.Handle("/reserved-seats/", reservationgen.Handler(handlers.Reservation))
 	mux.Handle("/rooms/", roomgen.Handler(handlers.Room))
 	mux.Handle("/screenings/", screeninggen.Handler(handlers.Screening))
-	mux.Handle("/seats/", screeninggen.Handler(handlers.Screening))
+	mux.Handle("/seats/", seatgen.Handler(handlers.Seat))
 
 	// TODO: unsafe, only for testing purposes
 	mux.Handle("/resources/", http.StripPrefix("/resources/", http.FileServer(http.Dir("./resources"))))
