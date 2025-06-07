@@ -61,5 +61,17 @@ func (r *repository) UpdatePDF(id uuid.UUID, path string) error {
 }
 
 func (r *repository) Delete(id uuid.UUID) error {
-	return r.db.Delete(&models.Reservation{}, "id = ?", id).Error
+	tx := r.db.Begin()
+
+	if err := tx.Where("reservation_id = ?", id).Delete(&models.ReservedSeat{}).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	if err := tx.Delete(&models.Reservation{}, "id = ?", id).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	return tx.Commit().Error
 }

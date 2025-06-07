@@ -1,4 +1,5 @@
 import { useMovieById } from '@/apis/movie';
+import { getResourceUrl } from '@/utils/resources';
 import { Box, Chip, CircularProgress, Paper, Typography } from '@mui/material';
 import { useParams } from 'react-router-dom';
 
@@ -17,36 +18,45 @@ export const MovieView = () => {
   if (isError || !movie) {
     return (
       <Box p={4}>
-        <Typography color="error">Movie not found.</Typography>
+        <Typography color="error">Nie udało się załadować filmu.</Typography>
       </Box>
     );
   }
 
   return (
-    <Box p={4}>
-      <Typography variant="h4" mb={2}>
+    <Box p={4} maxWidth="md" mx="auto">
+      <Typography variant="h3" mb={1}>
         {movie.title}
       </Typography>
-      <Typography variant="subtitle1" color="textSecondary" mb={2}>
-        Directed by {movie.director}
+      <Typography variant="subtitle1" color="text.secondary" mb={3}>
+        Reżyser: {movie.director}
       </Typography>
 
-      <Paper sx={{ p: 2, mb: 3 }}>
+      <Paper
+        elevation={3}
+        sx={{
+          width: 'fit-content',
+          maxWidth: 300,
+          mx: 'auto',
+          mb: 4,
+          borderRadius: 2,
+          overflow: 'hidden',
+          backgroundColor: '#f9f9f9'
+        }}>
         <Box
           component="img"
-          src={movie.photoPath || '/placeholder-movie.png'}
+          src={getResourceUrl('movies', movie.photoPath)}
           alt={movie.title}
           sx={{
             width: '100%',
-            maxHeight: 400,
-            objectFit: 'cover',
-            borderRadius: 2
+            height: 'auto',
+            display: 'block'
           }}
         />
       </Paper>
 
       {movie.description && (
-        <Typography variant="body1" mb={2}>
+        <Typography variant="body1" mb={3}>
           {movie.description}
         </Typography>
       )}
@@ -54,11 +64,11 @@ export const MovieView = () => {
       {movie.actorIDs && movie.actorIDs.length > 0 && (
         <Box mt={2}>
           <Typography variant="subtitle2" gutterBottom>
-            Actors:
+            Aktorzy:
           </Typography>
           <Box display="flex" gap={1} flexWrap="wrap">
-            {movie.actorIDs.map((actorId) => (
-              <Chip key={actorId} label={`Actor: ${actorId}`} />
+            {movie.actorIDs.map((acotr) => (
+              <Chip key={acotr} label={`${acotr}`} />
             ))}
           </Box>
         </Box>

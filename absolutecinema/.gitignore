@@ -2,3 +2,5 @@
 
 resources/reservations/*
 resources/movies/*
+!resources/movies/seeded/
+!resources/movies/seeded/**

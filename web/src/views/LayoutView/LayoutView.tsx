@@ -1,3 +1,4 @@
+import { Footer } from '@/components/Footer/Footer';
 import Navbar from '@/components/Navbar/Navbar';
 import Progress from '@/components/Progress/Progress';
 import { Box } from '@mui/material';
@@ -11,25 +12,27 @@ export const LayoutView = () => {
       sx={{
         display: 'flex',
         flexDirection: 'column',
-        height: '100vh',
-        width: '100vw',
-        overflow: 'hidden'
+        maxHeight: '100vh',
+        minHeight: '100vh'
       }}>
-      <Box component="header" sx={{ flexShrink: 0 }}>
-        <Navbar />
-      </Box>
+      <Navbar />
 
       <Box
         component="main"
         sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          flex: 1,
           flexGrow: 1,
-          overflow: 'auto',
-          p: 2
+          boxSizing: 'border-box',
+          justifyContent: 'center',
+          alignItems: 'center'
         }}>
         <Suspense fallback={<Progress />}>
           <Outlet />
         </Suspense>
       </Box>
+      <Footer />
     </Box>
   );
 };

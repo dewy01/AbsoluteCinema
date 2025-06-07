@@ -38,21 +38,21 @@ export const deleteScreeningById = async (id: string) => {
 };
 
 export const getScreeningsByMovie = async (movieID: string, day?: string) => {
-  const response = await axiosInstance.get(`/screenings/movie/${movieID}/`, {
+  const response = await axiosInstance.get(`/screenings/movie/${movieID}`, {
     params: day ? { day } : undefined,
   });
   return response.data as components['schemas']['ScreeningOutput'][];
 };
 
 export const getScreeningsByRoom = async (roomID: string, day?: string) => {
-  const response = await axiosInstance.get(`/screenings/room/${roomID}/`, {
+  const response = await axiosInstance.get(`/screenings/room/${roomID}`, {
     params: day ? { day } : undefined,
   });
   return response.data as components['schemas']['ScreeningOutput'][];
 };
 
 export const getScreeningsByCinema = async (cinemaID: string, day?: string) => {
-  const response = await axiosInstance.get(`/screenings/cinema/${cinemaID}/`, {
+  const response = await axiosInstance.get(`/screenings/cinema/${cinemaID}`, {
     params: day ? { day } : undefined,
   });
   return response.data as components['schemas']['ScreeningOutput'][];

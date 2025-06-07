@@ -44,6 +44,12 @@ const Reservation = lazy(() =>
   }))
 );
 
+const UserReservation = lazy(() =>
+  import('@/views/UserReservationsView').then((module) => ({
+    default: module.UserReservationsView
+  }))
+);
+
 export const Router = () => {
   return (
     <Suspense fallback={<Progress />}>
@@ -55,6 +61,7 @@ export const Router = () => {
           <Route path="movie/:id" element={<Movie />} />
           <Route path="screening/:id" element={<Screening />} />
           <Route path="reservation/:id" element={<Reservation />} />
+          <Route path="my-reservations" element={<UserReservation />} />
         </Route>
       </Routes>
     </Suspense>

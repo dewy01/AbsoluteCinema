@@ -1,10 +1,11 @@
 import { baseUrl } from '@/constants/constants';
+import { useAuth } from '@/contexts';
 import type { components } from '@/types/openapi/reservation';
 import { downloadFileFromPath } from '@/utils/downloadFile';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { AxiosError } from 'axios';
 import { useSnackbar } from 'notistack';
-import { queryClient } from '../api';
+import { useNavigate } from 'react-router-dom';
 import {
   deleteReservationById,
   getReservationById,
@@ -13,29 +14,35 @@ import {
   updateReservationPdfPath,
 } from './api';
 
+
 export const useCreateReservation = () => {
   const { enqueueSnackbar } = useSnackbar();
-
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuth(); 
   return useMutation({
     mutationKey: ['createReservation'],
     mutationFn: (data: components['schemas']['CreateReservationInput']) =>
       postCreateReservation(data),
 
-    onSuccess: async (data) => {
-      if (data.pdfPath) {
-        const url = `${baseUrl}/resources/${data.pdfPath}`;
-        try {
-          await downloadFileFromPath(url, `rezerwacja-${data.id}.pdf`);
-        } catch {
-          enqueueSnackbar('Nie udało się pobrać PDF-a.', { variant: 'error' });
-        }
-      }
-
-      queryClient.invalidateQueries({
-        queryKey: ['seatsByScreening']
-      });
-
+    onSuccess: async (response) => {
       enqueueSnackbar('Rezerwacja została utworzona!');
+
+      const pdfPath = response?.pdfPath;
+      if (!pdfPath) {
+        console.warn('Brak ścieżki PDF w odpowiedzi serwera.');
+        return;
+      }
+      
+      if (!isAuthenticated) {
+        try {
+          const fullPdfUrl = `${baseUrl}/resources/${pdfPath}`;
+          await downloadFileFromPath(fullPdfUrl, `rezerwacja-${response.id}.pdf`).then(()=>navigate('/'));
+        } catch (err) {
+          enqueueSnackbar('Nie udało się pobrać pliku PDF.', { variant: 'error' });
+        }
+      } else {
+        navigate('/my-reservations');
+      }
     },
 
     onError: (err) => {
@@ -47,6 +54,7 @@ export const useCreateReservation = () => {
     },
   });
 };
+
 
 export const useReservationById = (id: string) => {
   return useQuery({
@@ -65,7 +73,7 @@ export const useDeleteReservation = (id: string) => {
     mutationFn: () => deleteReservationById(id),
     onSuccess: () => {
       enqueueSnackbar('Rezerwacja została usunięta.');
-      queryClient.invalidateQueries({ queryKey: ['reservation', id] });
+      queryClient.invalidateQueries({ queryKey: ['reservationsByUser'] });
     },
     onError: () => {
       enqueueSnackbar('Nie udało się usunąć rezerwacji.', { variant: 'error' });

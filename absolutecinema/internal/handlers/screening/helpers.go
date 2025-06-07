@@ -15,8 +15,11 @@ func toScreeningOutput(s screening_service.ScreeningOutput) screeninggen.Screeni
 		Id:        &s.ID,
 		StartTime: &s.StartTime,
 		Movie: &screeninggen.MovieOutput{
-			Id:    &s.Movie.ID,
-			Title: &s.Movie.Title,
+			Id:          &s.Movie.ID,
+			Title:       &s.Movie.Title,
+			Director:    &s.Movie.Director,
+			Description: &s.Movie.Description,
+			PhotoPath:   &s.Movie.PhotoPath,
 		},
 		Room: &screeninggen.RoomOutput{
 			Id:   &s.Room.ID,

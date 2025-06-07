@@ -79,9 +79,20 @@ function Navbar() {
           </Box>
 
           {/* Auth / Avatar */}
-          <Box sx={{ flexGrow: 0 }}>
+          <Box
+            sx={{
+              flexGrow: 0,
+              display: 'flex',
+              gap: 2,
+              justifyContent: 'center',
+              alignItems: 'center'
+            }}>
             {isAuthenticated ? (
               <>
+                <NavLink to="/my-reservations" style={{ textDecoration: 'none', color: 'inherit' }}>
+                  <Button color="inherit">Moje rezerwacje</Button>
+                </NavLink>
+
                 <Tooltip title="Ustawienia">
                   <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
                     <Avatar alt="Użytkownik" src="/static/images/avatar/2.jpg" />

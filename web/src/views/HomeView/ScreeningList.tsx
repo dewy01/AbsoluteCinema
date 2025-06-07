@@ -1,5 +1,6 @@
 import type { components } from '@/types/openapi/screening';
 import { mapScreeningsByMovie } from '@/utils/mapScreenings';
+import { getResourceUrl } from '@/utils/resources';
 import { Box, Button, Paper, Typography } from '@mui/material';
 import dayjs from 'dayjs';
 import { useMemo } from 'react';
@@ -30,7 +31,7 @@ export const ScreeningList = ({ screenings }: ScreeningListProps) => {
           }}>
           <Box
             component="img"
-            src={movie?.photoPath}
+            src={getResourceUrl('movies', movie?.photoPath)}
             alt={movie?.title}
             sx={{
               width: 120,

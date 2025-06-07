@@ -1,4 +1,5 @@
 import { useScreeningById } from '@/apis/screening';
+import { getResourceUrl } from '@/utils/resources';
 import { Box, Button, CircularProgress, Typography } from '@mui/material';
 import dayjs from 'dayjs';
 import { NavLink, useParams } from 'react-router-dom';
@@ -24,47 +25,59 @@ export const ScreeningView = () => {
   }
 
   return (
-    <Box p={4}>
-      <Typography variant="h4" gutterBottom>
-        {data.movie?.title || 'Nieznany film'}
-      </Typography>
-      <Typography variant="subtitle1" gutterBottom>
-        Reżyser: {data.movie?.director || 'Brak danych'}
-      </Typography>
-      <Typography variant="body1" paragraph>
-        {data.movie?.description || 'Brak opisu.'}
-      </Typography>
-
+    <Box
+      p={4}
+      display="flex"
+      justifyContent="center"
+      alignItems="flex-start"
+      gap={4}
+      flexWrap="wrap"
+      maxWidth={900}
+      mx="auto">
       <Box
         component="img"
-        src={data.movie?.photoPath}
+        src={getResourceUrl('movies', data.movie?.photoPath)}
         alt={data.movie?.title}
         sx={{
-          width: '100%',
-          maxWidth: 500,
+          width: 300,
+          maxWidth: '100%',
           height: 'auto',
           borderRadius: 2,
-          mb: 3,
-          backgroundColor: '#eee'
+          backgroundColor: '#eee',
+          flexShrink: 0
         }}
       />
 
-      <Typography>
-        <strong>Sala:</strong> {data.room?.name}
-      </Typography>
-      <Typography>
-        <strong>Start:</strong> {dayjs(data.startTime).format('DD MMM YYYY, HH:mm')}
-      </Typography>
+      <Box flex="1" minWidth={280} display="flex" flexDirection="column" gap={2}>
+        <Typography variant="h3" component="h1" gutterBottom>
+          {data.movie?.title || 'Nieznany film'}
+        </Typography>
 
-      <Box mt={4} display="flex" gap={2}>
-        <NavLink to={`/movie/${data.movie?.id}`}>
-          <Button variant="outlined">Przejdź do filmu</Button>
-        </NavLink>
-        <NavLink to={`/reservation/${data.id}`}>
-          <Button variant="contained" color="primary">
-            Rezerwuj
-          </Button>
-        </NavLink>
+        <Typography variant="subtitle1" color="text.secondary">
+          Reżyser: {data.movie?.director || 'Brak danych'}
+        </Typography>
+
+        <Typography variant="body1" paragraph>
+          {data.movie?.description || 'Brak opisu.'}
+        </Typography>
+
+        <Typography variant="body1">
+          <strong>Sala:</strong> {data.room?.name}
+        </Typography>
+        <Typography variant="body1">
+          <strong>Start:</strong> {dayjs(data.startTime).format('DD MMM YYYY, HH:mm')}
+        </Typography>
+
+        <Box mt={3} display="flex" gap={2} flexWrap="wrap">
+          <NavLink to={`/movie/${data.movie?.id}`} style={{ textDecoration: 'none' }}>
+            <Button variant="outlined">Przejdź do filmu</Button>
+          </NavLink>
+          <NavLink to={`/reservation/${data.id}`} style={{ textDecoration: 'none' }}>
+            <Button variant="contained" color="primary">
+              Rezerwuj
+            </Button>
+          </NavLink>
+        </Box>
       </Box>
     </Box>
   );
