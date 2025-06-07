@@ -154,13 +154,13 @@ export const UpdateReservationView = () => {
                   );
                 })}
             </Box>
-            {errors.seats && (
-              <Typography color="error" mt={1}>
-                {errors.seats.message}
-              </Typography>
-            )}
           </Box>
         ))}
+        {errors.seats && (
+          <Typography color="error" mt={1}>
+            {errors.seats.message}
+          </Typography>
+        )}
       </Box>
 
       <Paper

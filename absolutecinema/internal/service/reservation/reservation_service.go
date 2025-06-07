@@ -2,6 +2,9 @@ package reservation_service
 
 import (
 	"absolutecinema/internal/database/repository/reservation"
+	reservedseat "absolutecinema/internal/database/repository/reserved_seat"
+	"absolutecinema/internal/database/repository/screening"
+	"absolutecinema/internal/database/repository/seat"
 	"absolutecinema/pkg/fsystem"
 	"bytes"
 	"errors"
@@ -21,14 +24,18 @@ type Service interface {
 }
 
 type service struct {
-	repo reservation.Repository
-	fs   fsystem.FileStorage
+	repo      reservation.Repository
+	screening screening.Repository
+	seat      seat.Repository
+	fs        fsystem.FileStorage
 }
 
-func NewReservationService(repo reservation.Repository, fs fsystem.FileStorage) *service {
+func NewReservationService(repo reservation.Repository, screening screening.Repository, seat seat.Repository, fs fsystem.FileStorage) *service {
 	return &service{
-		repo: repo,
-		fs:   fs,
+		repo:      repo,
+		screening: screening,
+		seat:      seat,
+		fs:        fs,
 	}
 }
 
@@ -55,7 +62,7 @@ func (s *service) Create(input CreateReservationInput) (*ReservationOutput, erro
 		return nil, err
 	}
 
-	pdfBytes, err := generateReservationPDF(res)
+	pdfBytes, err := s.generateReservationPDF(res.ID, input.GuestName, input.GuestEmail, input.ReservedSeats)
 	if err != nil {
 		return nil, fmt.Errorf("generate pdf: %w", err)
 	}
@@ -83,7 +90,7 @@ func (s *service) Create(input CreateReservationInput) (*ReservationOutput, erro
 }
 
 func (s *service) Update(input UpdateReservationInput) (*ReservationOutput, error) {
-	if input.GuestName == "" || input.GuestEmail == "" {
+	if input.UserID == nil && (input.GuestName == "" || input.GuestEmail == "") {
 		return nil, errors.New("guest name and email are required for guest reservations")
 	}
 
@@ -106,7 +113,7 @@ func (s *service) Update(input UpdateReservationInput) (*ReservationOutput, erro
 		return nil, fmt.Errorf("update reservation: %w", err)
 	}
 
-	pdfBytes, err := generateReservationPDF(res)
+	pdfBytes, err := s.generateReservationPDF(input.ID, input.GuestName, input.GuestEmail, input.ReservedSeats)
 	if err != nil {
 		return nil, fmt.Errorf("generate pdf: %w", err)
 	}
@@ -182,4 +189,43 @@ func toOutput(r *reservation.Reservation) *ReservationOutput {
 		PDFPath:       r.PDFPath,
 		ReservedSeats: seats,
 	}
+}
+
+func (s *service) generateReservationPDF(reservationID uuid.UUID, guestName, guestEmail string, reservedSeats []reservedseat.ReservedSeat) ([]byte, error) {
+	seats := []SeatFile{}
+	for _, rseat := range reservedSeats {
+		seat, err := s.seat.GetByID(rseat.SeatID)
+		if err != nil {
+			return nil, err
+		}
+		seats = append(seats, SeatFile{
+			Number: seat.Number,
+			Row:    seat.Row,
+		})
+	}
+
+	reservation, err := s.repo.GetByID(reservationID)
+	if err != nil {
+		return nil, err
+	}
+
+	screening, err := s.screening.GetByID(reservation.ScreeningID)
+	if err != nil {
+		return nil, err
+	}
+
+	resFile := &ReservationFile{
+		ID:         reservationID,
+		GuestName:  guestName,
+		GuestEmail: guestEmail,
+		Movie: MovieFile{
+			Title:       screening.Movie.Title,
+			Description: screening.Movie.Description,
+		},
+		StartTime:     screening.StartTime,
+		ReservedSeats: seats,
+		Room:          screening.Room.Name,
+	}
+
+	return generateReservationPDF(resFile)
 }

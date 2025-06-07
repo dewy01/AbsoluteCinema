@@ -33,7 +33,7 @@ func NewServices(repos *repository.Repositories, sessionService *auth.Service, a
 		Actor:        actorService.NewActorService(repos.Actor),
 		Cinema:       cinemaService.NewCinemaService(repos.Cinema),
 		Movie:        movieService.NewMovieService(repos.Movie, areoStorage),
-		Reservation:  reservationService.NewReservationService(repos.Reservation, areoStorage),
+		Reservation:  reservationService.NewReservationService(repos.Reservation, repos.Screening, repos.Seat, areoStorage),
 		ReservedSeat: reserved_seat_Service.NewReservedSeatService(repos.ReservedSeat),
 		Room:         room_service.NewRoomService(repos.Room),
 		Screening:    screening_service.NewScreeningService(repos.Screening),
