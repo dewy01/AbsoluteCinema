@@ -212,7 +212,11 @@ export interface components {
             director?: string;
             description?: string;
             photoPath?: string;
-            actorIDs?: string[];
+            actors?: {
+                /** Format: uuid */
+                id?: string;
+                name?: string;
+            }[];
         };
     };
     responses: never;

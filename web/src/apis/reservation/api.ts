@@ -14,6 +14,14 @@ export const postCreateReservation = async (
   return response.data as components['schemas']['ReservationOutput'];
 };
 
+export const updateReservationById = async (
+  id: string,
+  data: components['schemas']['UpdateReservationInput']
+) => {
+  const response = await axiosInstance.put(`/reservations/update/${id}`, data);
+  return response.data as components['schemas']['ReservationOutput'];
+};
+
 export const getReservationById = async (id: string) => {
   const response = await axiosInstance.get(`/reservations/${id}`);
   return response.data as components['schemas']['ReservationOutput'];

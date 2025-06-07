@@ -8,10 +8,10 @@ import (
 )
 
 type Repository interface {
-	Create(m *Movie) error
+	Create(m *CreateMovie) error
+	Update(id uuid.UUID, m *CreateMovie) error
 	GetByID(id uuid.UUID) (*Movie, error)
 	GetAll() ([]Movie, error)
-	Update(m *Movie) error
 	Delete(id uuid.UUID) error
 }
 
@@ -23,11 +23,12 @@ func NewMovieRepository(db *gorm.DB) Repository {
 	return &repository{db: db}
 }
 
-func (r *repository) Create(m *Movie) error {
-	dbM := ToDBMovie(m)
+func (r *repository) Create(m *CreateMovie) error {
+	dbM := ToDBCreateMovie(m)
 	if dbM.ID == uuid.Nil {
 		dbM.ID = uuid.New()
 	}
+
 	if err := r.db.Create(dbM).Error; err != nil {
 		return err
 	}
@@ -37,10 +38,35 @@ func (r *repository) Create(m *Movie) error {
 		if err := r.db.Where("id IN ?", m.ActorIDs).Find(&actors).Error; err != nil {
 			return err
 		}
-		return r.db.Model(dbM).Association("Actors").Replace(&actors)
+		if err := r.db.Model(dbM).Association("Actors").Replace(&actors); err != nil {
+			return err
+		}
 	}
 
 	return nil
+}
+
+func (r *repository) Update(id uuid.UUID, m *CreateMovie) error {
+	dbM := ToDBCreateMovie(m)
+
+	if err := r.db.Model(&models.Movie{}).Where("id = ?", id).Updates(dbM).Error; err != nil {
+		return err
+	}
+
+	var movie models.Movie
+	if err := r.db.First(&movie, "id = ?", id).Error; err != nil {
+		return err
+	}
+
+	if len(m.ActorIDs) > 0 {
+		var actors []models.Actor
+		if err := r.db.Where("id IN ?", m.ActorIDs).Find(&actors).Error; err != nil {
+			return err
+		}
+		return r.db.Model(&movie).Association("Actors").Replace(&actors)
+	} else {
+		return r.db.Model(&movie).Association("Actors").Clear()
+	}
 }
 
 func (r *repository) GetByID(id uuid.UUID) (*Movie, error) {
@@ -61,23 +87,6 @@ func (r *repository) GetAll() ([]Movie, error) {
 		movies[i] = *ToDomainMovie(&m)
 	}
 	return movies, nil
-}
-
-func (r *repository) Update(m *Movie) error {
-	dbM := ToDBMovie(m)
-	if err := r.db.Model(&models.Movie{}).Where("id = ?", m.ID).Updates(dbM).Error; err != nil {
-		return err
-	}
-
-	if len(m.ActorIDs) > 0 {
-		var actors []models.Actor
-		if err := r.db.Where("id IN ?", m.ActorIDs).Find(&actors).Error; err != nil {
-			return err
-		}
-		return r.db.Model(dbM).Association("Actors").Replace(&actors)
-	} else {
-		return r.db.Model(dbM).Association("Actors").Clear()
-	}
 }
 
 func (r *repository) Delete(id uuid.UUID) error {

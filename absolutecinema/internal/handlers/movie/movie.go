@@ -28,14 +28,7 @@ func (h *MovieHandler) GetMovies(w http.ResponseWriter, r *http.Request) {
 
 	var resp []moviegen.MovieOutput
 	for _, m := range movies {
-		resp = append(resp, moviegen.MovieOutput{
-			Id:          &m.ID,
-			Title:       &m.Title,
-			Director:    &m.Director,
-			Description: &m.Description,
-			PhotoPath:   &m.PhotoPath,
-			ActorIDs:    &m.ActorIDs,
-		})
+		resp = append(resp, ToMovieOutput(m))
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -62,14 +55,7 @@ func (h *MovieHandler) PostMovies(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp := moviegen.MovieOutput{
-		Id:          &movieOut.ID,
-		Title:       &movieOut.Title,
-		Director:    &movieOut.Director,
-		Description: &movieOut.Description,
-		PhotoPath:   &movieOut.PhotoPath,
-		ActorIDs:    &movieOut.ActorIDs,
-	}
+	resp := ToMovieOutput(*movieOut)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
@@ -84,14 +70,7 @@ func (h *MovieHandler) GetMoviesId(w http.ResponseWriter, r *http.Request, id uu
 		return
 	}
 
-	resp := moviegen.MovieOutput{
-		Id:          &movieOut.ID,
-		Title:       &movieOut.Title,
-		Director:    &movieOut.Director,
-		Description: &movieOut.Description,
-		PhotoPath:   &movieOut.PhotoPath,
-		ActorIDs:    &movieOut.ActorIDs,
-	}
+	resp := ToMovieOutput(*movieOut)
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(resp)
@@ -117,14 +96,7 @@ func (h *MovieHandler) PutMoviesId(w http.ResponseWriter, r *http.Request, id uu
 		return
 	}
 
-	resp := moviegen.MovieOutput{
-		Id:          &movieOut.ID,
-		Title:       &movieOut.Title,
-		Director:    &movieOut.Director,
-		Description: &movieOut.Description,
-		PhotoPath:   &movieOut.PhotoPath,
-		ActorIDs:    &movieOut.ActorIDs,
-	}
+	resp := ToMovieOutput(*movieOut)
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(resp)

@@ -25,12 +25,15 @@ type CreateMovieInput struct {
 
 // MovieOutput defines model for MovieOutput.
 type MovieOutput struct {
-	ActorIDs    *[]openapi_types.UUID `json:"actorIDs,omitempty"`
-	Description *string               `json:"description,omitempty"`
-	Director    *string               `json:"director,omitempty"`
-	Id          *googleuuid.UUID      `json:"id,omitempty"`
-	PhotoPath   *string               `json:"photoPath,omitempty"`
-	Title       *string               `json:"title,omitempty"`
+	Actors *[]struct {
+		Id   *openapi_types.UUID `json:"id,omitempty"`
+		Name *string             `json:"name,omitempty"`
+	} `json:"actors,omitempty"`
+	Description *string          `json:"description,omitempty"`
+	Director    *string          `json:"director,omitempty"`
+	Id          *googleuuid.UUID `json:"id,omitempty"`
+	PhotoPath   *string          `json:"photoPath,omitempty"`
+	Title       *string          `json:"title,omitempty"`
 }
 
 // UpdateMovieInput defines model for UpdateMovieInput.

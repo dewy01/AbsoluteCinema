@@ -4,6 +4,7 @@ import { baseUrl } from '@/constants/constants';
 import { downloadFileFromPath } from '@/utils/downloadFile';
 import { Box, Button, Card, CardContent, CircularProgress, Stack, Typography } from '@mui/material';
 import { useState } from 'react';
+import { NavLink } from 'react-router-dom';
 import { DeleteConfirmationDialog } from './DeleteConfirmationDialog';
 
 export const UserReservationsView = () => {
@@ -66,6 +67,9 @@ export const UserReservationsView = () => {
                     Pobierz PDF
                   </Button>
                 )}
+                <NavLink to={`/reservation/${reservation.id}/update`}>
+                  <Button variant="contained">Edytuj</Button>
+                </NavLink>
                 <Button
                   variant="outlined"
                   color="error"

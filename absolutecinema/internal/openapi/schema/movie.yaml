@@ -144,8 +144,13 @@ components:
           type: string
         photoPath:
           type: string
-        actorIDs:
+        actors:
           type: array
           items:
-            type: string
-            format: uuid
+            type: object
+            properties:
+              id:
+                type: string
+                format: uuid
+              name:
+                type: string

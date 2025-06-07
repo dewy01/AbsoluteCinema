@@ -61,14 +61,14 @@ export const MovieView = () => {
         </Typography>
       )}
 
-      {movie.actorIDs && movie.actorIDs.length > 0 && (
+      {movie.actors && movie.actors.length > 0 && (
         <Box mt={2}>
           <Typography variant="subtitle2" gutterBottom>
             Aktorzy:
           </Typography>
           <Box display="flex" gap={1} flexWrap="wrap">
-            {movie.actorIDs.map((acotr) => (
-              <Chip key={acotr} label={`${acotr}`} />
+            {movie.actors.map((actor) => (
+              <Chip key={actor.id} label={`${actor.name}`} />
             ))}
           </Box>
         </Box>

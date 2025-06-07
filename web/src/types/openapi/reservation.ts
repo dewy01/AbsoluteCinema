@@ -51,6 +51,62 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/reservations/update/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Update an existing reservation */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateReservationInput"];
+                };
+            };
+            responses: {
+                /** @description Reservation updated successfully */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ReservationOutput"];
+                    };
+                };
+                /** @description Bad request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Reservation not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/reservations/user/{userID}": {
         parameters: {
             query?: never;
@@ -224,6 +280,14 @@ export interface components {
             guestName?: string;
             /** Format: email */
             guestEmail?: string;
+            reservedSeats: components["schemas"]["ReservedSeatInput"][];
+        };
+        UpdateReservationInput: {
+            /** Format: uuid */
+            userID?: string | null;
+            guestName: string;
+            /** Format: email */
+            guestEmail: string;
             reservedSeats: components["schemas"]["ReservedSeatInput"][];
         };
         ReservedSeatInput: {

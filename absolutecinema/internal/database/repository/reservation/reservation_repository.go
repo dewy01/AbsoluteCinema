@@ -9,6 +9,7 @@ import (
 
 type Repository interface {
 	Create(res *Reservation) error
+	Update(res *Reservation) error
 	GetByID(id uuid.UUID) (*Reservation, error)
 	GetByUserID(userID uuid.UUID) ([]Reservation, error)
 	UpdatePDF(id uuid.UUID, path string) error
@@ -34,6 +35,40 @@ func (r *repository) Create(res *Reservation) error {
 		}
 	}
 	return r.db.Create(dbRes).Error
+}
+
+func (r *repository) Update(res *Reservation) error {
+	tx := r.db.Begin()
+
+	if err := tx.Where("reservation_id = ?", res.ID).Delete(&models.ReservedSeat{}).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	dbRes := ToDBReservation(res)
+	for i := range dbRes.ReservedSeats {
+		if dbRes.ReservedSeats[i].ID == uuid.Nil {
+			dbRes.ReservedSeats[i].ID = uuid.New()
+		}
+	}
+
+	updateFields := map[string]interface{}{
+		"user_id":     dbRes.UserID,
+		"guest_name":  dbRes.GuestName,
+		"guest_email": dbRes.GuestEmail,
+	}
+
+	if err := tx.Model(&models.Reservation{}).Where("id = ?", dbRes.ID).Updates(updateFields).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	if err := tx.Create(&dbRes.ReservedSeats).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	return tx.Commit().Error
 }
 
 func (r *repository) GetByID(id uuid.UUID) (*Reservation, error) {

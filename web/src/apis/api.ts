@@ -24,14 +24,6 @@ export const queryClient = new QueryClient({
       await handleErrorCache(err);
     }
   }),
-  defaultOptions: {
-    mutations: {
-      retry: false
-    },
-    queries: {
-      retry: false
-    }
-  }
 });
 
 const handleSuccessCache = () => {

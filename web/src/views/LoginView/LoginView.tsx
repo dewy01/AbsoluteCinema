@@ -21,18 +21,6 @@ export const LoginView = () => {
 
   const { mutateAsync } = useUserLogin();
 
-  // const onSubmit = async (data: UserLogin) => {
-  //   await mutateAsync(data, {
-  //     onSuccess: () => {
-  //       reset();
-  //     },
-  //     onError: (error) => {
-  //       console.error('Login failed:', error);
-  //       reset();
-  //     }
-  //   });
-  // };
-
   const onSubmit = async (data: UserLogin) => {
     mutateAsync(data).then(() => {
       reset();

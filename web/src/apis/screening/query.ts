@@ -17,8 +17,6 @@ export const useScreenings = (day?: string) => {
   return useQuery({
     queryKey: ['screenings', day],
     queryFn: () => getScreenings(day),
-    retry: false,
-    refetchOnWindowFocus: false,
   });
 };
 
@@ -48,8 +46,6 @@ export const useScreeningById = (id: string) => {
   return useQuery({
     queryKey: ['screening', id],
     queryFn: () => getScreeningById(id),
-    retry: false,
-    refetchOnWindowFocus: false,
   });
 };
 

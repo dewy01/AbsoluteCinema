@@ -44,6 +44,14 @@ type ReservedSeatOutput struct {
 	SeatID *openapi_types.UUID `json:"seatID,omitempty"`
 }
 
+// UpdateReservationInput defines model for UpdateReservationInput.
+type UpdateReservationInput struct {
+	GuestEmail    openapi_types.Email `json:"guestEmail"`
+	GuestName     string              `json:"guestName"`
+	ReservedSeats []ReservedSeatInput `json:"reservedSeats"`
+	UserID        *openapi_types.UUID `json:"userID"`
+}
+
 // PutReservationsIdJSONBody defines parameters for PutReservationsId.
 type PutReservationsIdJSONBody struct {
 	PdfPath string `json:"pdfPath"`
@@ -51,6 +59,9 @@ type PutReservationsIdJSONBody struct {
 
 // PostReservationsJSONRequestBody defines body for PostReservations for application/json ContentType.
 type PostReservationsJSONRequestBody = CreateReservationInput
+
+// PutReservationsUpdateIdJSONRequestBody defines body for PutReservationsUpdateId for application/json ContentType.
+type PutReservationsUpdateIdJSONRequestBody = UpdateReservationInput
 
 // PutReservationsIdJSONRequestBody defines body for PutReservationsId for application/json ContentType.
 type PutReservationsIdJSONRequestBody PutReservationsIdJSONBody
@@ -60,6 +71,9 @@ type ServerInterface interface {
 	// Create a new reservation
 	// (POST /reservations/)
 	PostReservations(w http.ResponseWriter, r *http.Request)
+	// Update an existing reservation
+	// (PUT /reservations/update/{id})
+	PutReservationsUpdateId(w http.ResponseWriter, r *http.Request, id openapi_types.UUID)
 	// Get reservations by user ID
 	// (GET /reservations/user/{userID})
 	GetReservationsUserUserID(w http.ResponseWriter, r *http.Request, userID openapi_types.UUID)
@@ -88,6 +102,31 @@ func (siw *ServerInterfaceWrapper) PostReservations(w http.ResponseWriter, r *ht
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.PostReservations(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// PutReservationsUpdateId operation middleware
+func (siw *ServerInterfaceWrapper) PutReservationsUpdateId(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", r.PathValue("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.PutReservationsUpdateId(w, r, id)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -318,6 +357,7 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 	}
 
 	m.HandleFunc("POST "+options.BaseURL+"/reservations/", wrapper.PostReservations)
+	m.HandleFunc("PUT "+options.BaseURL+"/reservations/update/{id}", wrapper.PutReservationsUpdateId)
 	m.HandleFunc("GET "+options.BaseURL+"/reservations/user/{userID}", wrapper.GetReservationsUserUserID)
 	m.HandleFunc("DELETE "+options.BaseURL+"/reservations/{id}", wrapper.DeleteReservationsId)
 	m.HandleFunc("GET "+options.BaseURL+"/reservations/{id}", wrapper.GetReservationsId)

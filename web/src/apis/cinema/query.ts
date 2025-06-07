@@ -14,8 +14,6 @@ export const useCinemas = () => {
   return useQuery({
     queryKey: ['cinemas'],
     queryFn: getCinemas,
-    retry: false,
-    refetchOnWindowFocus: false,
   });
 };
 
@@ -44,8 +42,6 @@ export const useCinemaById = (id: string) => {
   return useQuery({
     queryKey: ['cinema', id],
     queryFn: () => getCinemaById(id),
-    retry: false,
-    refetchOnWindowFocus: false,
   });
 };
 

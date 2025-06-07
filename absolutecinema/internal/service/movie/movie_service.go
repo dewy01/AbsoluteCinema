@@ -54,7 +54,7 @@ func (s *service) Create(input CreateMovieInput) (*MovieOutput, error) {
 
 	fullPath := filepath.Join(storagePath, photoFilename)
 
-	movieDomain := &movie.Movie{
+	createInput := &movie.CreateMovie{
 		ID:          id,
 		Title:       input.Title,
 		Director:    input.Director,
@@ -63,34 +63,24 @@ func (s *service) Create(input CreateMovieInput) (*MovieOutput, error) {
 		ActorIDs:    input.ActorIDs,
 	}
 
-	if err := s.repo.Create(movieDomain); err != nil {
+	if err := s.repo.Create(createInput); err != nil {
 		return nil, err
 	}
 
-	return &MovieOutput{
-		ID:          movieDomain.ID,
-		Title:       movieDomain.Title,
-		Director:    movieDomain.Director,
-		Description: movieDomain.Description,
-		PhotoPath:   movieDomain.PhotoPath,
-		ActorIDs:    movieDomain.ActorIDs,
-	}, nil
-}
-
-func (s *service) GetByID(id uuid.UUID) (*MovieOutput, error) {
-	movieDomain, err := s.repo.GetByID(id)
+	createdMovie, err := s.repo.GetByID(id)
 	if err != nil {
 		return nil, err
 	}
 
-	return &MovieOutput{
-		ID:          movieDomain.ID,
-		Title:       movieDomain.Title,
-		Director:    movieDomain.Director,
-		Description: movieDomain.Description,
-		PhotoPath:   movieDomain.PhotoPath,
-		ActorIDs:    movieDomain.ActorIDs,
-	}, nil
+	return toMovieOutput(createdMovie), nil
+}
+
+func (s *service) GetByID(id uuid.UUID) (*MovieOutput, error) {
+	m, err := s.repo.GetByID(id)
+	if err != nil {
+		return nil, err
+	}
+	return toMovieOutput(m), nil
 }
 
 func (s *service) GetAll() ([]MovieOutput, error) {
@@ -101,44 +91,46 @@ func (s *service) GetAll() ([]MovieOutput, error) {
 
 	outputs := make([]MovieOutput, len(movies))
 	for i, m := range movies {
-		outputs[i] = MovieOutput{
-			ID:          m.ID,
-			Title:       m.Title,
-			Director:    m.Director,
-			Description: m.Description,
-			PhotoPath:   m.PhotoPath,
-			ActorIDs:    m.ActorIDs,
-		}
+		outputs[i] = *toMovieOutput(&m)
 	}
-
 	return outputs, nil
 }
 
 func (s *service) Update(id uuid.UUID, input UpdateMovieInput) (*MovieOutput, error) {
-	movieDomain, err := s.repo.GetByID(id)
+	m, err := s.repo.GetByID(id)
 	if err != nil {
 		return nil, err
 	}
 
 	if input.Title != "" {
-		movieDomain.Title = input.Title
+		m.Title = input.Title
 	}
 	if input.Director != "" {
-		movieDomain.Director = input.Director
+		m.Director = input.Director
 	}
 	if input.Description != "" {
-		movieDomain.Description = input.Description
+		m.Description = input.Description
 	}
 	if input.ActorIDs != nil {
-		movieDomain.ActorIDs = input.ActorIDs
+		createInput := &movie.CreateMovie{
+			ID:          m.ID,
+			Title:       m.Title,
+			Director:    m.Director,
+			Description: m.Description,
+			PhotoPath:   m.PhotoPath,
+			ActorIDs:    input.ActorIDs,
+		}
+		if err := s.repo.Update(id, createInput); err != nil {
+			return nil, err
+		}
 	}
 
 	if input.Photo.FileSize() > 0 {
 		storagePath := fmt.Sprintf("resources/movies/%s/", id.String())
 		newPhotoFilename := "photo" + filepath.Ext(input.Photo.Filename())
 
-		if movieDomain.PhotoPath != "" {
-			oldPhotoFilename := filepath.Base(movieDomain.PhotoPath)
+		if m.PhotoPath != "" {
+			oldPhotoFilename := filepath.Base(m.PhotoPath)
 			_ = s.fs.RemoveMovieFile(id.String(), oldPhotoFilename)
 		}
 
@@ -152,21 +144,26 @@ func (s *service) Update(id uuid.UUID, input UpdateMovieInput) (*MovieOutput, er
 			return nil, fmt.Errorf("save new photo: %w", err)
 		}
 
-		movieDomain.PhotoPath = filepath.Join(storagePath, newPhotoFilename)
+		m.PhotoPath = filepath.Join(storagePath, newPhotoFilename)
 	}
 
-	if err := s.repo.Update(movieDomain); err != nil {
+	if err := s.repo.Update(id, &movie.CreateMovie{
+		ID:          m.ID,
+		Title:       m.Title,
+		Director:    m.Director,
+		Description: m.Description,
+		PhotoPath:   m.PhotoPath,
+		ActorIDs:    input.ActorIDs,
+	}); err != nil {
 		return nil, err
 	}
 
-	return &MovieOutput{
-		ID:          movieDomain.ID,
-		Title:       movieDomain.Title,
-		Director:    movieDomain.Director,
-		Description: movieDomain.Description,
-		PhotoPath:   movieDomain.PhotoPath,
-		ActorIDs:    movieDomain.ActorIDs,
-	}, nil
+	updatedMovie, err := s.repo.GetByID(id)
+	if err != nil {
+		return nil, err
+	}
+
+	return toMovieOutput(updatedMovie), nil
 }
 
 func (s *service) Delete(id uuid.UUID) error {

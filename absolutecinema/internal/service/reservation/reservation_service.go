@@ -13,6 +13,7 @@ import (
 
 type Service interface {
 	Create(input CreateReservationInput) (*ReservationOutput, error)
+	Update(input UpdateReservationInput) (*ReservationOutput, error)
 	GetByID(id uuid.UUID) (*ReservationOutput, error)
 	GetByUserID(userID uuid.UUID) ([]ReservationOutput, error)
 	UpdatePDF(id uuid.UUID, pdfPath string) error
@@ -74,6 +75,57 @@ func (s *service) Create(input CreateReservationInput) (*ReservationOutput, erro
 	}
 
 	updatedRes, err := s.repo.GetByID(id)
+	if err != nil {
+		return nil, err
+	}
+
+	return toOutput(updatedRes), nil
+}
+
+func (s *service) Update(input UpdateReservationInput) (*ReservationOutput, error) {
+	if input.GuestName == "" || input.GuestEmail == "" {
+		return nil, errors.New("guest name and email are required for guest reservations")
+	}
+
+	before, err := s.repo.GetByID(input.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	res := &reservation.Reservation{
+		ID:            input.ID,
+		ScreeningID:   before.ScreeningID,
+		UserID:        input.UserID,
+		GuestName:     input.GuestName,
+		GuestEmail:    input.GuestEmail,
+		PDFPath:       before.PDFPath,
+		ReservedSeats: input.ReservedSeats,
+	}
+
+	if err := s.repo.Update(res); err != nil {
+		return nil, fmt.Errorf("update reservation: %w", err)
+	}
+
+	pdfBytes, err := generateReservationPDF(res)
+	if err != nil {
+		return nil, fmt.Errorf("generate pdf: %w", err)
+	}
+
+	storagePath := input.ID.String()
+	filename := "reservation-" + input.ID.String() + ".pdf"
+
+	err = s.fs.SaveReservationFile(storagePath, filename, bytes.NewReader(pdfBytes))
+	if err != nil {
+		return nil, fmt.Errorf("save pdf: %w", err)
+	}
+
+	fullPath := filepath.Join("reservations", storagePath, filename)
+
+	if err := s.repo.UpdatePDF(input.ID, fullPath); err != nil {
+		return nil, fmt.Errorf("update pdf path in db: %w", err)
+	}
+
+	updatedRes, err := s.repo.GetByID(input.ID)
 	if err != nil {
 		return nil, err
 	}

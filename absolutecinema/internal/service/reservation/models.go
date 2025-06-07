@@ -14,6 +14,14 @@ type CreateReservationInput struct {
 	ReservedSeats []reservedseat.ReservedSeat `json:"reservedSeats"`
 }
 
+type UpdateReservationInput struct {
+	ID            uuid.UUID
+	UserID        *uuid.UUID
+	GuestName     string
+	GuestEmail    string
+	ReservedSeats []reservedseat.ReservedSeat
+}
+
 type ReservedSeat = reservedseat.ReservedSeat
 
 type ReservedSeatOutput struct {

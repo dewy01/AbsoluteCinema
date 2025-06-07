@@ -15,8 +15,6 @@ export const useSeatById = (id: string) => {
   return useQuery({
     queryKey: ['seat', id],
     queryFn: () => getSeatById(id),
-    retry: false,
-    refetchOnWindowFocus: false,
     enabled: !!id,
   });
 };

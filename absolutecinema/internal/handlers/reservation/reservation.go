@@ -53,6 +53,38 @@ func (h *Handler) PostReservations(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(out)
 }
 
+// PUT /reservations/update/{id}
+func (h *Handler) PutReservationsUpdateId(w http.ResponseWriter, r *http.Request, id openapi_types.UUID) {
+	var input reservationgen.UpdateReservationInput
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		http.Error(w, "invalid JSON body: "+err.Error(), http.StatusBadRequest)
+		return
+	}
+	defer r.Body.Close()
+
+	serviceInput := reservation_service.UpdateReservationInput{
+		ID:            id,
+		GuestName:     input.GuestName,
+		GuestEmail:    string(input.GuestEmail),
+		UserID:        input.UserID,
+		ReservedSeats: make([]reservation_service.ReservedSeat, len(input.ReservedSeats)),
+	}
+
+	for i, seat := range input.ReservedSeats {
+		serviceInput.ReservedSeats[i] = reservation_service.ReservedSeat{
+			SeatID: uuid.UUID(seat.SeatID),
+		}
+	}
+
+	out, err := h.Service.Update(serviceInput)
+	if err != nil {
+		http.Error(w, "failed to update reservation: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	json.NewEncoder(w).Encode(out)
+}
+
 // GET /reservations/user/{userID}
 func (h *Handler) GetReservationsUserUserID(w http.ResponseWriter, r *http.Request, userID openapi_types.UUID) {
 	reservations, err := h.Service.GetByUserID(userID)

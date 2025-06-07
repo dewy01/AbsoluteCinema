@@ -1,6 +1,19 @@
 import Progress from '@/components/Progress/Progress';
 import { lazy, Suspense } from 'react';
 import { Route, Routes } from 'react-router-dom';
+import { AuthGuard } from '../AuthGuard';
+
+const Forbidden = lazy(() =>
+  import('@/views/ForbiddenView').then((module) => ({
+    default: module.ForbiddenView
+  }))
+);
+
+const NotFound = lazy(() =>
+  import('@/views/NotFoundView').then((module) => ({
+    default: module.NotFoundView
+  }))
+);
 
 const Layout = lazy(() =>
   import('@/views/LayoutView').then((module) => ({
@@ -50,6 +63,12 @@ const UserReservation = lazy(() =>
   }))
 );
 
+const UpdateReservation = lazy(() =>
+  import('@/views/ReservationView').then((module) => ({
+    default: module.UpdateReservationView
+  }))
+);
+
 export const Router = () => {
   return (
     <Suspense fallback={<Progress />}>
@@ -61,7 +80,18 @@ export const Router = () => {
           <Route path="movie/:id" element={<Movie />} />
           <Route path="screening/:id" element={<Screening />} />
           <Route path="reservation/:id" element={<Reservation />} />
-          <Route path="my-reservations" element={<UserReservation />} />
+          <Route
+            path="my-reservations"
+            element={
+              <AuthGuard>
+                <UserReservation />
+              </AuthGuard>
+            }
+          />
+          <Route path="reservation/:id/update" element={<UpdateReservation />} />
+          <Route path="not-found" element={<NotFound />} />
+          <Route path="forbidden" element={<Forbidden />} />
+          <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>
     </Suspense>

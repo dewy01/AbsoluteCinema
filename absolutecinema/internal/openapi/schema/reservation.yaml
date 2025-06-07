@@ -23,6 +23,34 @@ paths:
         "400":
           description: Bad request
 
+  /reservations/update/{id}:
+    put:
+      summary: Update an existing reservation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateReservationInput"
+      responses:
+        "200":
+          description: Reservation updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReservationOutput"
+        "400":
+          description: Bad request
+        "404":
+          description: Reservation not found
+
   /reservations/user/{userID}:
     parameters:
       - name: userID
@@ -106,6 +134,27 @@ components:
         screeningID:
           type: string
           format: uuid
+        userID:
+          type: string
+          format: uuid
+          nullable: true
+        guestName:
+          type: string
+        guestEmail:
+          type: string
+          format: email
+        reservedSeats:
+          type: array
+          items:
+            $ref: "#/components/schemas/ReservedSeatInput"
+
+    UpdateReservationInput:
+      type: object
+      required:
+        - guestName
+        - guestEmail
+        - reservedSeats
+      properties:
         userID:
           type: string
           format: uuid

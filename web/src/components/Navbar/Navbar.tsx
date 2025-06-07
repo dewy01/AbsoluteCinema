@@ -64,21 +64,18 @@ function Navbar() {
             </Typography>
           </NavLink>
 
-          {/* Hamburger (mobile) */}
           <Box sx={{ flexGrow: 1, display: { xs: 'flex', md: 'none' } }}>
             <IconButton size="large" aria-label="menu" onClick={openCinemaModal} color="inherit">
               <MenuIcon />
             </IconButton>
           </Box>
 
-          {/* Selected cinema (desktop) */}
           <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' }, alignItems: 'center' }}>
             <Button onClick={openCinemaModal} sx={{ my: 2, color: 'white', display: 'block' }}>
               {selectedCinema ? `Kino: ${selectedCinema.name}` : 'Wybierz kino'}
             </Button>
           </Box>
 
-          {/* Auth / Avatar */}
           <Box
             sx={{
               flexGrow: 0,
@@ -89,10 +86,6 @@ function Navbar() {
             }}>
             {isAuthenticated ? (
               <>
-                <NavLink to="/my-reservations" style={{ textDecoration: 'none', color: 'inherit' }}>
-                  <Button color="inherit">Moje rezerwacje</Button>
-                </NavLink>
-
                 <Tooltip title="Ustawienia">
                   <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
                     <Avatar alt="Użytkownik" src="/static/images/avatar/2.jpg" />
@@ -107,6 +100,13 @@ function Navbar() {
                   transformOrigin={{ vertical: 'top', horizontal: 'right' }}
                   open={Boolean(anchorElUser)}
                   onClose={handleCloseUserMenu}>
+                  <MenuItem>
+                    <NavLink
+                      to="/my-reservations"
+                      style={{ textDecoration: 'none', color: 'inherit' }}>
+                      Moje rezerwacje
+                    </NavLink>
+                  </MenuItem>
                   <MenuItem
                     onClick={() => {
                       mutateAsync();

@@ -11,6 +11,7 @@ import {
   getReservationById,
   getReservationsByUser,
   postCreateReservation,
+  updateReservationById,
   updateReservationPdfPath,
 } from './api';
 
@@ -18,7 +19,9 @@ import {
 export const useCreateReservation = () => {
   const { enqueueSnackbar } = useSnackbar();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { isAuthenticated } = useAuth(); 
+
   return useMutation({
     mutationKey: ['createReservation'],
     mutationFn: (data: components['schemas']['CreateReservationInput']) =>
@@ -26,6 +29,8 @@ export const useCreateReservation = () => {
 
     onSuccess: async (response) => {
       enqueueSnackbar('Rezerwacja została utworzona!');
+      queryClient.invalidateQueries({ queryKey: ['reservation', response.id] });
+      queryClient.invalidateQueries({ queryKey: ['reservationsByUser'] });
 
       const pdfPath = response?.pdfPath;
       if (!pdfPath) {
@@ -55,13 +60,59 @@ export const useCreateReservation = () => {
   });
 };
 
+export const useUpdateReservation = (id: string) => {
+  const { enqueueSnackbar } = useSnackbar();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { isAuthenticated } = useAuth();
+
+  return useMutation({
+    mutationKey: ['updateReservation', id],
+    mutationFn: (data: components['schemas']['UpdateReservationInput']) =>
+      updateReservationById(id, data),
+
+    onSuccess: async (response) => {
+      enqueueSnackbar('Rezerwacja została zaktualizowana.');
+      queryClient.invalidateQueries({ queryKey: ['reservation', id] });
+      queryClient.invalidateQueries({ queryKey: ['reservationsByUser'] });
+
+      const pdfPath = response?.pdfPath;
+      if (!pdfPath) {
+        console.warn('Brak ścieżki PDF w odpowiedzi serwera.');
+        return;
+      }
+
+      if (!isAuthenticated) {
+        try {
+          const fullPdfUrl = `${baseUrl}/resources/${pdfPath}`;
+          await downloadFileFromPath(fullPdfUrl, `rezerwacja-${response.id}.pdf`).then(() => {
+            navigate('/');
+          });
+        } catch (err) {
+          enqueueSnackbar('Nie udało się pobrać pliku PDF.', { variant: 'error' });
+        }
+      } else {
+        navigate('/my-reservations');
+      }
+    },
+
+    onError: (err) => {
+      if (err instanceof AxiosError && err.response?.status === 400) {
+        enqueueSnackbar('Nieprawidłowe dane rezerwacji.', { variant: 'error' });
+      } else if (err instanceof AxiosError && err.response?.status === 404) {
+        enqueueSnackbar('Rezerwacja nie została znaleziona.', { variant: 'error' });
+      } else {
+        enqueueSnackbar('Błąd podczas aktualizacji rezerwacji.', { variant: 'error' });
+      }
+    },
+  });
+};
 
 export const useReservationById = (id: string) => {
   return useQuery({
     queryKey: ['reservation', id],
     queryFn: () => getReservationById(id),
     enabled: !!id,
-    retry: false,
   });
 };
 
@@ -100,6 +151,5 @@ export const useReservationsByUser = (userID: string) => {
     queryKey: ['reservationsByUser', userID],
     queryFn: () => getReservationsByUser(userID),
     enabled: !!userID,
-    retry: false,
   });
 };
